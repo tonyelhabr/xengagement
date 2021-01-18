@@ -34,4 +34,6 @@ app.layout = html.Div(
     ]
 )
 # app.run_server(mode='inline')
-app.server = server
+# app.server = server
+
+# %%

@@ -1,74 +1,70 @@
-ansi2html @ file:///D:/bld/ansi2html_1610127565008/work
+ansi2html==0.0.0
 autopep8==1.5.4
 backcall==0.2.0
-Brotli @ file:///D:/bld/brotli-split_1610110784919/work
+backports.functools-lru-cache==1.6.1
+Brotli==1.0.9
 brotlipy==0.7.0
 certifi==2020.12.5
-cffi @ file:///D:/bld/cffi_1606601427219/work
-chardet @ file:///D:/bld/chardet_1610093644405/work
+cffi==1.14.4
+chardet==4.0.0
 click==7.1.2
-colorama @ file:///tmp/build/80754af9/colorama_1607707115595/work
-cryptography @ file:///D:/bld/cryptography_1610338853236/work
-dash @ file:///home/conda/feedstock_root/build_artifacts/dash_1607700893762/work
-dash-core-components @ file:///home/conda/feedstock_root/build_artifacts/dash-core-components_1607591917425/work
-dash-html-components @ file:///home/conda/feedstock_root/build_artifacts/dash-html-components_1599715712112/work
-dash-renderer @ file:///home/conda/feedstock_root/build_artifacts/dash-renderer_1604054245287/work
-dash-table @ file:///home/conda/feedstock_root/build_artifacts/dash-table_1607421537867/work
+colorama==0.4.4
+cryptography==3.3.1
+dash==1.18.1
+dash-core-components==1.14.1
+dash-html-components==1.1.1
+dash-renderer==1.8.3
+dash-table==4.11.1
 decorator==4.4.2
-fastparquet @ file:///D:/bld/fastparquet_1609272842589/work
+fastparquet==0.5.0
 Flask==1.1.2
-Flask-Compress @ file:///home/conda/feedstock_root/build_artifacts/flask-compress_1604422164145/work
-future @ file:///D:/bld/future_1610147416207/work
+Flask-Compress==1.8.0
+future==0.18.2
 gunicorn==20.0.4
-idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1593328102638/work
+idna==2.10
 ipykernel==5.3.4
-ipython @ file:///C:/ci/ipython_1604101327119/work
-ipython-genutils @ file:///tmp/build/80754af9/ipython_genutils_1606773439826/work
+ipython==7.18.1
+ipython-genutils==0.2.0
 itsdangerous==1.1.0
-jedi @ file:///C:/ci/jedi_1608902611503/work
+jedi==0.18.0
 Jinja2==2.11.2
-joblib @ file:///tmp/build/80754af9/joblib_1607970656719/work
 jupyter-client==6.1.7
 jupyter-core==4.6.3
-jupyter-dash @ file:///home/conda/feedstock_root/build_artifacts/jupyter-dash_1606733367950/work
+jupyter-dash==0.3.1
 llvmlite==0.35.0
-MarkupSafe @ file:///D:/bld/markupsafe_1610127696479/work
-mkl-fft==1.2.0
-mkl-random==1.1.1
-mkl-service==2.3.0
-numba @ file:///D:/bld/numba_1607010622162/work
-numpy @ file:///C:/ci/numpy_and_numpy_base_1603468620949/work
-packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1607785313469/work
-pandas @ file:///C:/ci/pandas_1609008089615/work
-parso==0.7.0
-pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
-plotly @ file:///home/conda/feedstock_root/build_artifacts/plotly_1610471242275/work
-prompt-toolkit @ file:///tmp/build/80754af9/prompt-toolkit_1602688806899/work
-pyarrow==0.15.1
+MarkupSafe==1.1.1
+numba==0.52.0
+numpy==1.19.5
+packaging==20.8
+pandas==1.2.0
+parso==0.8.1
+pickleshare==0.7.5
+pip==20.3.3
+plotly==4.14.3
+prompt-toolkit==3.0.10
 pycodestyle==2.6.0
-pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1593275161868/work
-Pygments @ file:///tmp/build/80754af9/pygments_1610565767015/work
-pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1608055815057/work
+pycparser==2.20
+Pygments==2.7.4
+pyOpenSSL==20.0.1
 pyparsing==2.4.7
-PySocks @ file:///D:/bld/pysocks_1610291658292/work
+PySocks==1.7.1
 python-dateutil==2.8.1
-python-snappy @ file:///C:/ci/python-snappy_1610115316141/work
-pytz @ file:///tmp/build/80754af9/pytz_1608922264688/work
+python-snappy==0.5.4
+pytz==2020.5
 pywin32==228
 PyYAML==5.3.1
 pyzmq==19.0.2
-requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1608156231189/work
+requests==2.25.1
 retrying==1.3.3
-scikit-learn @ file:///C:/ci/scikit-learn_1598376983131/work
-scipy @ file:///C:/ci/scipy_1597686737426/work
-six @ file:///C:/ci/six_1605205426665/work
-threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+setuptools==49.6.0.post20210108
+six==1.15.0
 thrift==0.11.0
 toml==0.10.2
 tornado==6.0.4
-traitlets @ file:///tmp/build/80754af9/traitlets_1602787416690/work
-urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1605225765842/work
-wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work
+traitlets==5.0.5
+urllib3==1.26.2
+wcwidth==0.2.5
 Werkzeug==1.0.1
-win-inet-pton @ file:///D:/bld/win_inet_pton_1610147627696/work
+wheel==0.36.2
+win-inet-pton==1.1.0
 wincertstore==0.2

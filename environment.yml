@@ -1,0 +1,17 @@
+name: xengagement
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - dash
+  - dash-renderer
+  - dash-core-components
+  - dash-html-components
+  - plotly
+  - pandas
+  - python-snappy
+  - fastparquet
+  - jupyter-dash
+  - pip:
+    - gunicorn
