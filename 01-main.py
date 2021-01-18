@@ -39,3 +39,5 @@ app.layout = html.Div(
 server = app.server  # prod
 
 # %%
+if __name__ == "__main__":
+    app.run_server()
