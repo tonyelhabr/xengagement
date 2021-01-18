@@ -15,7 +15,8 @@ preds
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # app = JupyterDash(__name__, external_stylesheets=external_stylesheets) # local
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
+# app.run_server(mode='inline') # local
+server = app.server  # prod
 #%%
 app.layout = html.Div(
     [
@@ -35,8 +36,6 @@ app.layout = html.Div(
         )
     ]
 )
-# app.run_server(mode='inline') # local
-server = app.server  # prod
 
 # %%
 if __name__ == "__main__":
