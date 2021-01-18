@@ -9,8 +9,6 @@ dependencies:
   - dash-html-components
   - plotly
   - pandas
-  - python-snappy
-  - fastparquet
   - jupyter-dash
   - pip
   - pip:
