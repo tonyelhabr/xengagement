@@ -60,7 +60,7 @@ six==1.15.0
 thrift==0.11.0
 toml==0.10.2
 tornado==6.0.4
-traitlets==5.0.5
+traitlets==4.3.3
 urllib3==1.26.2
 wcwidth==0.2.5
 Werkzeug==1.0.1
