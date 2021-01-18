@@ -20,7 +20,7 @@ server = app.server  # prod
 #%%
 app.layout = html.Div(
     [
-        html.H1('Header'),
+        html.H1('An attempt was made'),
         dcc.Graph(
             id='fig1',
             figure={
