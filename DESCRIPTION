@@ -1,0 +1,14 @@
+Package: xengagement
+Title: R package for {{...}}.
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Tony",
+           family = "ElHabr",
+           role = c("aut", "cre"),
+           email = "anthonyelhabr@gmail.com")
+Description: An R package for {{...}}.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
