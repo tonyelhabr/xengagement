@@ -1,0 +1,42 @@
+
+#' @noRd
+.get_dir_data <- function() {
+  getOption('xengagement.dir_data')
+}
+
+#' Directory for package-stored data
+#' 
+#' Where to retrieve package-stored data
+get_dir_data <- .get_dir_data
+
+#' @noRd
+.get_xengagement_seed <- function() {
+  getOption('xengagement.seed')
+}
+
+#' @noRd
+.get_verbose <- function() {
+  getOption('xengagement.verbose')
+}
+
+#' Valid items to predict for
+#' 
+#' Valid items to predict for. Either `"favorite"` or `"retweet"`.
+get_valid_stems <- memoise::memoise({function() {
+  c('favorite', 'retweet')
+}})
+
+#' @noRd
+.validate_stem <- function(x = get_valid_stems(), ...) {
+  match.arg(x, ...)
+}
+
+#' @noRd
+.get_valid_suffixes <- memoise::memoise({function() {
+  c('h', 'a')
+}})
+
+#' @noRd
+.validate_suffix <- function(x = .get_valid_suffixes(), ...) {
+  match.arg(x, ...)
+}
