@@ -8,11 +8,21 @@ import pandas as pd
 #%%
 # preds = pd.read_parquet('preds_favorites.parquet')
 # preds.to_csv('preds_favorites.csv', index=False)
-preds = pd.read_csv('preds_favorites.csv')
+preds = pd.read_csv('xengagement.csv')
 preds
+
+#%%
+external_stylesheets = [
+    {
+        'href':
+            'https://fonts.googleapis.com/css2?'
+            'family=Lato:wght@400;700&display=swap',
+        'rel': 'stylesheet',
+    },
+]
+
 #%%
 # app = dash.Dash()
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # app = JupyterDash(__name__, external_stylesheets=external_stylesheets) # local
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # app.run_server(mode='inline') # local
@@ -38,5 +48,5 @@ app.layout = html.Div(
 )
 
 # %%
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run_server()

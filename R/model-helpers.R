@@ -5,7 +5,7 @@
     prefix = prefix,
     suffix = suffix
   ) %>% 
-    tidyr::unite('col', prefix, suffix) %>% 
+    tidyr::unite('col', prefix, suffix, remove = FALSE) %>% 
     dplyr::arrange(col)
 }
 
@@ -23,7 +23,7 @@
         prefix,
         list(
           lab = ~dplyr::case_when(
-            .x == 'g', 'Goals',
+            .x == 'g' ~ 'Goals',
             .x == 'xg' ~ 'xG',
             .x == 'estimated_followers_count' ~ 'Team\'s Twitter Account Followers (Est.)'
           )
@@ -38,7 +38,8 @@
           )
         )
       ),
-      lab = sprintf('%s %s', suffix_lab, prefix_lab)
+      # lab = sprintf('%s %s', suffix_lab, prefix_lab)
+      lab = sprintf('%s, %s', prefix_lab, suffix_lab)
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
       
@@ -52,7 +53,7 @@
         prefix,
         list(
           lab = ~dplyr::case_when(
-            .x == 'hour', 'Hour',
+            .x == 'hour' ~ 'Hour',
             .x == 'wday' ~ 'Weekday'
           )
         )
@@ -60,27 +61,29 @@
       dplyr::across(
         suffix,
         list(
-          `1` = ~stringr::str_sub(.x, 1),
-          `2` = ~stringr::str_sub(.x, 2)
+          `1` = ~stringr::str_sub(.x, 1, -2),
+          `2` = ~stringr::str_sub(.x, 2, 2)
         )
       ),
       dplyr::across(
-        suffix1,
+        suffix_1,
         list(
           lab = ~dplyr::case_when(
-            .x == 'x' ~ 'sin',
-            .x == 'y' ~ 'cos'
+            .x == 'x' ~ 'Sin',
+            .x == 'y' ~ 'Cos'
           )
         )
       ),
       dplyr::across(
-        suffix2,
-        lab = ~dplyr::case_when(
-          .x == '1' ~ '1st',
-          .x == '2' ~ '2nd'
+        suffix_2,
+        list(
+          lab = ~dplyr::case_when(
+            .x == '1' ~ '1st',
+            .x == '2' ~ '2nd'
+          )
         )
       ),
-      lab = sprintf('%s %s', suffix_lab, prefix_lab)
+      lab = sprintf('%s Order %s Fourier Term, %s', suffix_2_lab, suffix_1_lab, prefix_lab)
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
   

@@ -1,8 +1,39 @@
 
 valid_stems <- get_valid_stems()
 cols_lst <- get_cols_lst(valid_stems[1]) # Doesn't matter what the target variable is.
-.f_import_pred <- function(stem) {
-  path <- file.path(get_dir_data(), sprintf('preds_%s.parquet', stem))
+dir_data <- get_dir_data()
+.f_import_shap <- function(stem) {
+  path <- file.path(dir_data, sprintf('shap_%s.parquet', stem))
+  res <- 
+    path %>% 
+    arrow::read_parquet()
+  res
+}
+cols_x <- 
+  setNames(
+    cols_lst$cols_x_names,
+    cols_lst$cols_x
+  )
+cols_x
+
+# TODO: Could use this in multiple places?
+.f_rename <- function(data) {
+  data %>% 
+    dplyr::rename_with(~stringr::str_replace_all(.x, cols_x), dplyr::everything())
+}
+
+shap <-
+  valid_stems %>%
+  setNames(., .) %>% 
+  purrr::map_dfr(.f_import_shap, .id = 'stem') %>%
+  dplyr::relocate(stem, idx, .pred) %>% 
+  dplyr::arrange(stem, idx)
+shap
+
+readr::write_csv(.f_rename(shap), file.path(dir_data, 'shap.csv'), na = '')
+
+.f_import_preds <- function(stem) {
+  path <- file.path(dir_data, sprintf('preds_%s.parquet', stem))
   res <- 
     path %>% 
     arrow::read_parquet() %>% 
@@ -10,29 +41,6 @@ cols_lst <- get_cols_lst(valid_stems[1]) # Doesn't matter what the target variab
     dplyr::select(-dplyr::matches('_log$'))
   res
 }
-
-.f_import_shap <- function(stem) {
-  path <- file.path(get_dir_data(), sprintf('shap_%s.parquet', stem))
-  res <- 
-    path %>% 
-    arrow::read_parquet() # %>% 
-    # dplyr::rename_with(~sprintf('%s_pred', stem), .cols = c(.pred)) %>% 
-    # dplyr::select(-dplyr::matches('_log$'))
-  res
-}
-
-shap <-
-  valid_stems %>%
-  purrr::map(.f_import_shap) %>%
-  purrr::reduce(dplyr::bind_rows) %>%
-  # dplyr::select(
-  #   dplyr::one_of(cols_lst$cols_id),
-  #   dplyr::one_of(cols_lst$cols_extra),
-  #   favorite_pred,
-  #   retweet_pred
-  # ) %>%
-  dplyr::arrange(idx)
-shap
 
 suppressMessages(
   preds <-
@@ -118,4 +126,4 @@ res <-
 #   ggplot() +
 #   aes(x = created_at, y = favorite_count) +
 #   geom_point()
-readr::write_csv(res, 'xengagement.csv', na = '')
+readr::write_csv(res, file.path(dir_data, 'data_and_preds.csv'), na = '')

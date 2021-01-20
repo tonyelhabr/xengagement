@@ -3,7 +3,7 @@
 .onLoad <- function(libname, pkgname) {
   op <- options()
   op.xengagement <- list(
-    xengagement.dir_data = 'inst',
+    xengagement.dir_data = file.path('inst', 'extdata'),
     xengagement.seed = 42,
     xengagement.verbose = TRUE
   )
