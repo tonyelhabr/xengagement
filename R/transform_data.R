@@ -8,8 +8,8 @@
 .remove_emoticons <- function(x) {
   iconv(x, 'latin1', 'ASCII', sub='') %>% stringr::str_trim()
 }
+
 #' @noRd
-#' 
 .add_estimated_follower_count_col <-
   function(data,
            suffix = .get_valid_suffixes(),
@@ -79,23 +79,15 @@
 }
 
 #' @noRd
-.get_tms_correct <- memoise::memoise({function() {
-  dplyr::tibble(
-    tm = c('Spurs', 'Man Utd', 'Inter', 'Bayern', 'BVB', 'Leipzig'),
-    tm_correct = c('Tottenham', 'Man United', 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'RB Leipzig')
-  )
-}})
-
-#' @noRd
 .fix_tm_col <- function(data, suffix = .get_valid_suffixes()) {
   .validate_suffix(suffix)
   col_tm_sym <- sprintf('tm_%s', suffix) %>% sym()
   col_tm_correct_sym <- sprintf('tm_correct_%s', suffix) %>% sym()
-  tms_correct <- .get_tms_correct()
+  # tm_corrections <- .get_tm_corrections()
   tm_col <- sprintf('tm_%s', suffix)
   data %>% 
     dplyr::left_join(
-      tms_correct %>% dplyr::rename_all(~sprintf('%s_%s', .x, suffix)),
+      tm_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, suffix)),
       by = tm_col
     ) %>% 
     dplyr::mutate(
@@ -198,7 +190,14 @@
             y2 = ~.wday_fourier_term(.x, f = sin, order = 2)
           )
         ),
-        dplyr::across(text, ~stringr::str_remove(.x, '^FT[:]\\s+')),
+        dplyr::across(
+          text, 
+          # text with "FT: " at the beginning
+          ~stringr::str_remove(.x, '^FT[:]\\s+') %>% 
+            # text that ends with a twitter url... this isn't completely robust, but it should be fine
+            stringr::str_remove('\\s+https?[:][\\/][\\/]t[.]co.*$')
+        ),
+
         # Warnings here.
         dplyr::across(
           text,
@@ -227,7 +226,7 @@
       dplyr::mutate(
         idx = dplyr::row_number(created_at)
       ) %>% 
-      dplyr::relocate(idx)
+      dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
   )
   if(train) {
     res <-
@@ -236,8 +235,9 @@
         wt = idx / max(idx),
         # # Do these sequentially.
         dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_a), .x * 0.5, .x)),
-        dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_h), .x * 0.5, .x))
+        dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_h), .x * 0.5, .x)),
         # dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_a) | is.na(estimated_followers_count_h), .x * 0.5, .x))
+        dplyr::across(wt, ~.x^0.5)
       ) %>% 
       dplyr::relocate(idx, wt)
   }

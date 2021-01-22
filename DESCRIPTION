@@ -1,12 +1,13 @@
 Package: xengagement
-Title: R package for {{...}}.
+Title: Quantifying Twitter Engagement to xGPhilosophy
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Tony",
            family = "ElHabr",
            role = c("aut", "cre"),
            email = "anthonyelhabr@gmail.com")
-Description: An R package for {{...}}.
+Description: An R package for quantifying Twitter engagement to xGPhilosophy's
+    tweets recapping xG at the end of soccer matches.
 License: MIT + file LICENSE
 Depends: 
     R (>= 2.10)

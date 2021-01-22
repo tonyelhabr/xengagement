@@ -10,31 +10,37 @@ tm_accounts <-
     'laliga' = 787391036179951616,
     'ered' = 786072885798506496
   ) %>% 
-  map(rtweet::lists_members) %>% 
-  map_dfr(bind_rows, .id = 'lg') %>% 
-  select(lg, name, screen_name, user_id, followers_count, created_at) %>% 
-  arrange(desc(followers_count))
+  purrr::map(rtweet::lists_members) %>% 
+  purrr::map_dfr(dplyr::bind_rows, .id = 'lg') %>% 
+  dplyr::select(lg, name, screen_name, user_id, followers_count, created_at) %>% 
+  dplyr::arrange(dplyr::desc(followers_count))
 tm_accounts$scraped_at <- today
 tm_accounts
 
 tm_mapping <-
   file.path('data-raw', 'team_account_mapping.csv') %>% 
-  read_csv(
-    col_types = cols(
-      lg = col_character(),
-      tm = col_character(),
-      user_id = col_character()
+  readr::read_csv(
+    col_types = readr::cols(
+      lg = readr::col_character(),
+      tm = readr::col_character(),
+      user_id = readr::col_character()
     )
   )
 tm_mapping
 
 tm_accounts_mapping <-
   tm_mapping %>% 
-  left_join(
+  dplyr::left_join(
     tm_accounts %>% 
-      select(user_id, followers_count, created_at, scraped_at),
+      dplyr::select(user_id, followers_count, created_at, scraped_at),
     by = 'user_id'
   )
 tm_accounts_mapping
 
-usethis::use_data(tm_accounts, tm_mapping, tm_accounts_mapping, overwrite = TRUE, internal = TRUE)
+tm_corrections <-
+  dplyr::tibble(
+    tm = c('Spurs', 'Man Utd', 'Inter', 'Bayern', 'BVB', 'Leipzig'),
+    tm_correct = c('Tottenham', 'Man United', 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'RB Leipzig')
+  )
+
+usethis::use_data(tm_accounts, tm_mapping, tm_accounts_mapping, tm_corrections, overwrite = TRUE, internal = TRUE)

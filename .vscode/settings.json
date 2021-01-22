@@ -1,5 +1,0 @@
-{
-    "python.pythonPath": "venv\\Scripts\\python.exe",
-    //https://github.com/Microsoft/vscode/issues/43347
-    "python.globalModuleInstallation": true
-}

@@ -9,10 +9,8 @@ do_fit_model(
   stem = get_valid_stems(),
   overwrite = TRUE,
   ...,
-  overwrite_tune = overwrite,
-  overwrite_fit = overwrite,
-  overwrite_preds = overwrite,
-  overwrite_shap = overwrite
+  .overwrite = list(tune = overwrite, fit = overwrite, preds = overwrite, shap =
+    overwrite)
 )
 }
 \arguments{
@@ -24,7 +22,7 @@ do_fit_model(
 
 \item{...}{Extra arguments to pass to \code{.transform_tweets()}}
 
-\item{overwrite_tune, overwrite_fit, overwrite_pred, overwrite_shap}{Specific booleans for overwriting specific outputs saved to file. Default is to use same value as \code{overwrite}.}
+\item{.overwrite}{Specific booleans for overwriting specific outputs saved to file. Default is to use same value as \code{overwrite}.}
 }
 \description{
 Fit model, make predictions, and generate SHAP values.

@@ -13,7 +13,9 @@ cols_x <-
   setNames(
     cols_lst$cols_x_names,
     cols_lst$cols_x
-  )
+  ) %>% 
+  # move "xGPhilospher's..." to the end.
+  sort()
 cols_x
 
 # TODO: Could use this in multiple places?

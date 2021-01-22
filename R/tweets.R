@@ -43,8 +43,12 @@
       .display_info('Importing from `path = "{path}"` for appending.')
       tweets_existing <- f_import(path)
       latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at)
-      tweets <- rtweet::get_timeline(user = user, n = n, max_id = latest_tweet$status_id, ...)
-      tweets <- dplyr::bind_rows(tweets, tweets_existing) %>% dplyr::distinct(status_id, .keep_all = TRUE)
+      # tweets <- rtweet::get_timeline(user = user, n = n, max_id = latest_tweet$status_id, ...)
+      tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id)
+      tweets <- 
+        dplyr::bind_rows(tweets_new, tweets_existing) %>% 
+        dplyr::distinct(status_id, .keep_all = TRUE) %>% 
+        dplyr::arrange(created_at)
     } else {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
     }

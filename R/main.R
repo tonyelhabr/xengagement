@@ -84,7 +84,7 @@ predict_new <-
 #' @param stem Either `"favorite"` or `"retweet"`
 #' @param overwrite Whether to overwrite existing fit, predictions, and SHAP values.
 #' @param ... Extra arguments to pass to `.transform_tweets()`
-#' @param .overwrite Specific booleans for overwriting specific outputs saved to file. Default is to use same value as `overwrite`.
+#' @param .overwrite Specific booleans for overwriting specific outputs saved to file. Default is to use same value as `overwrite`. Only use this if you know what you're doing.
 do_fit_model <-
   function(tweets,
            stem = get_valid_stems(),
@@ -97,19 +97,33 @@ do_fit_model <-
              shap = overwrite
            )) {
     
-    # stem = 'favorite'
-    # overwrite = TRUE
+    tweets <- .import_tweets(overwrite = FALSE, append = FALSE, export = FALSE)
+    stem = 'favorite'
+    # overwrite = FALSE
     # .overwrite = list(
     #   tune = overwrite,
     #   fit = overwrite,
     #   preds = overwrite,
     #   shap = overwrite
     # )
+    .overwrite = 
+      list(
+        tune = FALSE, 
+        fit = FALSE, 
+        preds = FALSE, 
+        shap = TRUE
+    )
     
+    now <- lubridate::now()
+
     .validate_stem(stem)
     cols_lst <- .get_cols_lst(stem = stem)
     # data <- tweets %>% .transform_tweets(train = TRUE, ...)
-    data <- tweets %>% .transform_tweets(train = TRUE) # For running interactively.
+    # For running interactively.
+    data <-
+      tweets %>% 
+      dplyr::filter(created_at <= (now - lubridate::days(1))) %>% 
+      .transform_tweets(train = TRUE)
     
     .path_data_x <- function(file, ext = NULL) {
       .path_data(file = sprintf('%s_%s', file, stem), ext = ext)
@@ -136,10 +150,13 @@ do_fit_model <-
     print_every_n <- 100
     n_fold <- 10
     
+    y <- data[[cols_lst$col_y]]
+    wt <- data[[cols_lst$col_wt]]
     x_dmat <-
       xgboost::xgb.DMatrix(
         x_mat,
-        label = data[[cols_lst$col_y]]
+        weight = wt,
+        label = y
       )
     x_dmat
     
@@ -169,12 +186,12 @@ do_fit_model <-
         dplyr::select(fold, idx) %>%
         split(.$fold) %>%
         purrr::map(~dplyr::select(.x, -fold) %>% dplyr::pull(idx))
-      folds
+
       n_obs <- folds %>% purrr::flatten_int() %>% length()
       max_idx <- folds %>% purrr::flatten_int() %>% max()
       assertthat::assert_that(n_obs == max_idx)
       
-      n_row <- 50
+      n_row <- 3
       grid_params <-
         dials::grid_latin_hypercube(
           dials::finalize(dials::mtry(), data),
@@ -203,7 +220,7 @@ do_fit_model <-
           booster = booster,
           objective = objective,
           eval_metrics = eval_metrics,
-          sample_weight = data[[cols_lst$col_wt]],
+          sample_weight = wt,
           early_stopping_rounds = early_stopping_rounds,
           print_every_n = print_every_n
         )
@@ -252,8 +269,10 @@ do_fit_model <-
         xgboost::xgboost(
           params = params_best,
           data = x_dmat,
+          # data = x_mat,
+          # label = y,
+          # sample_weight = wt,
           nrounds = nrounds_best,
-          sample_weight = data[[cols_lst$col_wt]],
           early_stopping_rounds = early_stopping_rounds,
           print_every_n = print_every_n,
           verbose = 1
@@ -299,8 +318,6 @@ do_fit_model <-
     
     .f_shap_wide <- function() {
       .shap_xgb(
-        data = data,
-        cols_lst = cols_lst,
         x_mat = x_mat,
         fit = fit,
         preds = preds
@@ -318,4 +335,56 @@ do_fit_model <-
         overwrite = .overwrite$shap
       )
     fit
+    
+    library(DALEXtra)
+    library(xgboost)
+    library(mlr)
+    HR_X <- HR[,-6]
+    HR_y <- HR[,6]
+    encode_function <- function(X) {
+      as.matrix(createDummyFeatures(X))
+    }
+    HR_X_enc <- encode_function(HR_X)
+    HR_y_enc <- as.numeric(HR_y)-1
+    model <-  xgboost(data = HR_X_enc, 
+                      label = HR_y_enc, 
+                      verbose = FALSE, 
+                      params = list(objective = "multi:softprob",  num_class = 3),
+                      nrounds = 20)
+    explainer_xgb <- explain_xgboost(model, 
+                                     HR_X, 
+                                     as.factor(HR_y), 
+                                     encode_function = encode_function, 
+                                     true_labels = HR_y, 
+                                     verbose = FALSE, 
+                                     label = "xgboost")
+    
+    require(DALEXtra)
+    .encoder <- function(x) {
+      as.matrix(x)
+    }
+
+    x_df <- as.data.frame(x_mat)
+    fit_dalex <- 
+      xgboost::xgboost(
+        params = params_best,
+        # data = x_dmat,
+        data = x_mat,
+        label = y,
+        nrounds = nrounds_best,
+        early_stopping_rounds = early_stopping_rounds,
+        print_every_n = print_every_n,
+        verbose = 1
+      )
+
+    expl <- DALEXtra::explain_xgboost(fit_dalex, data = x_df, y = y, encode_function = .encoder, verbose = FALSE)
+    ibd <- predict_parts(expl, x_df[430, ])
+    plot(ibd)
+    bd <- 
+      DALEX::predict_parts(
+        expl, 
+        tweets %>% tail(1),
+        type = 'break_down_interactions'
+      )
+    bd
   }
