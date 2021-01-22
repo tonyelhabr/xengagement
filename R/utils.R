@@ -10,7 +10,7 @@
 get_dir_data <- .get_dir_data
 
 #' @noRd
-.get_xengagement_seed <- function() {
+do_getengagement_seed <- function() {
   getOption('xengagement.seed')
 }
 
@@ -39,4 +39,13 @@ get_valid_stems <- memoise::memoise({function() {
 #' @noRd
 .validate_suffix <- function(x = .get_valid_suffixes(), ...) {
   match.arg(x, ...)
+}
+
+#' @noRd
+`%||%` <- function (x, y) {
+  if(is.null(x)) { 
+    y
+  } else {
+    x
+  }
 }

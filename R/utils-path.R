@@ -18,6 +18,6 @@
 }
 
 #' @noRd
-.path_data <- function(dir = .get_dir_data(), ...) {
+.path_data <- function(dir = get_dir_data(), ...) {
   .path_x(dir = dir, ...)
 }

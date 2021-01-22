@@ -118,9 +118,16 @@
   .fourier_term(period = 7, ...)
 }
 
-# We have to make an assumption about how many followers the account had when it started to make tweets frequently, which really wasn't until Jan. 2020. Hence `first_follower_count`.
-#' @noRd
-.transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
+#' Transform tweets
+#' 
+#' Transform tweets into format for modeling. This can be saved and combined with SHAP values later. Follower growth of the xGPhilophy account is assumed to be linear per tweet, while growth of the team accounts is assumed to follow a concave curve.
+#' @param tweet Tweets retrieved with `retrieve_tweets`
+#' @param ... Not currently used
+#' @param train If `TRUE`, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.
+#' @param first_followers_account Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
+transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
+  
+  now <- lubridate::now()
   res_init <-
     tweets %>%
     dplyr::select(
@@ -129,7 +136,8 @@
       retweet_count,
       favorite_count,
       text
-    )
+    ) %>% 
+    dplyr::mutate(is_fresh = dplyr::if_else(created_at <= (now - lubridate::days(1)), FALSE, TRUE))
   
   latest_tweet <- tweets %>% dplyr::slice_max(created_at)
   latest_followers_count <- latest_tweet$followers_count

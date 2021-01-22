@@ -1,6 +1,19 @@
 
-#' @noRd
-.get_x <-
+#' Wrapper function for importing and exporting
+#' 
+#' Wrapper that imports and exports result of a function to a file on disk.
+#' @param f function to execute
+#' @param ... Extra arguments to pass to `f`
+#' @param dir Directory to use to generate `path` if `path` is not explicitly provided.
+#' @param file File name (without extension) to generate `path` if `path` is not explicitly provided.
+#' @param ext File extension to use to generate `path` if `path` is not explicitly provided.
+#' @param path Path to export to.
+#' @param f_import Function to import with if file exists and `overwrite = TRUE`.
+#' @param f_export Function to export with if `export = TRUE` .
+#' @param append Whether to append. Supersedes `export` and `overwrite`.
+#' @param export Whether to export. Supersedes `overwrite.
+#' @param overwrite Whether to overwrite.
+do_get <-
   function(...,
            f = NULL,
            file = tempfile(),
@@ -46,7 +59,7 @@
     }
     
     if(append) {
-      res <- list(res_init, res) %>% map(rbind)
+      res <- list(res_init, res) %>% purrr::map(rbind)
     }
     
     if(!export) {

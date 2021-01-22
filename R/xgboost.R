@@ -113,14 +113,16 @@
   }
 
 #' @noRd
-.shap_xgb <- function(fit, x_mat, preds, ...) {
+.shap_xgb <- function(fit, x_mat, preds) {
   
-  feature_values_init <-
-    x_mat %>%
-    as.data.frame() %>% 
-    dplyr::mutate_all(scale) %>%
-    tidyr::gather('feature', 'feature_value') %>%
-    dplyr::as_tibble()
+  suppressWarnings(
+    feature_values_init <-
+      x_mat %>%
+      as.data.frame() %>% 
+      dplyr::mutate_all(scale) %>%
+      tidyr::gather('feature', 'feature_value') %>%
+      dplyr::as_tibble()
+  )
   feature_values_init
   
   feature_values <-
@@ -139,48 +141,9 @@
   # TODO: Don't hard-code `idx`.
   shap <-
     shap_init %>%
-    head(430) %>% 
-    # dplyr::bind_cols(data %>% dplyr::select(idx)) %>%
     dplyr::bind_cols(
       preds %>%
         dplyr::select(idx, .pred)
     )
   shap
-  
-  shap_long <-
-    shap %>% 
-    tidyr::pivot_longer(
-      -c(idx, .pred)
-    ) %>% 
-    dplyr::mutate(sign = dplyr::if_else(value < 0, 'neg', 'pos') %>% factor())
-  shap_long
-  
-  # # x1 + x2 = y
-  # # log(x1 - 1) * log(x2 - 1)  = log(y - 1)
-  # # 
-  # 
-  # shap_long %>% 
-  #   group_by(idx, .pred) %>% 
-  #   summarize(across(value, sum)) %>% 
-  #   ungroup() %>% 
-  #   mutate(across(value, ~exp(.x) - 1))
-  # 
-  # pred_avg <- shap %>% summarize(across(.pred, mean)) %>% pull(.pred)
-  # shap_long %>% 
-  #   dplyr::filter(idx == 430L) %>% 
-  #   # dplyr::filter(name != 'baseline') %>% 
-  #   mutate(
-  #     across(
-  #       value, 
-  #       list(
-  #         frac = ~(exp(.x) - 1),
-  #         frac2 = ~1 + 1 / exp(-.x),
-  #         frac3 = ~1 / (1 + exp(-.x))
-  #       ), 
-  #       .names = '{fn}'
-  #     ),
-  #     contrib = frac * !!pred_avg,
-  #     sum = sum(contrib)
-  #   )
-  # shap_agg
 }

@@ -3,7 +3,7 @@
 export("%>%")
 export(":=")
 export(.data)
-export(.import_tweets)
+export(.retrieve_tweets)
 export(as_label)
 export(as_name)
 export(enquo)

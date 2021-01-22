@@ -6,13 +6,14 @@ Authors@R:
            family = "ElHabr",
            role = c("aut", "cre"),
            email = "anthonyelhabr@gmail.com")
-Description: An R package for quantifying Twitter engagement to xGPhilosophy's
-    tweets recapping xG at the end of soccer matches.
+Description: An R package for quantifying Twitter engagement to
+    xGPhilosophy's tweets recapping xG at the end of soccer matches.
 License: MIT + file LICENSE
 Depends: 
     R (>= 2.10)
 Imports: 
     arrow,
+    assertthat,
     cli,
     dials,
     dplyr,
@@ -22,13 +23,13 @@ Imports:
     memoise,
     purrr,
     readr,
+    rio,
     rlang (>= 0.1.2),
     rtweet,
+    stats,
     stringr,
     tidyr,
     xgboost
-Suggests: 
-    roxygen2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

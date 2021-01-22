@@ -1,20 +1,12 @@
 
 #' @details You probably don't want to change any of the parameters of this function manually.
-#' @describeIn import_tweets Import tweets from xGPhilosophy
+#' @describeIn retrieve_tweets Import tweets from xGPhilosophy
 #' @param user User for whom to retrieve tweets for.
 #' @param n Number of tweets to retrieve
 #' @param ... Extra parameters passed to `rtweet::get_timeline()`
-#' @param dir Directory to use to generate `path` if `path` is not explicitly provided.
-#' @param file File name (without extension) to generate `path` if `path` is not explicitly provided.
-#' @param ext File extension to use to generate `path` if `path` is not explicitly provided.
-#' @param path Path to export to.
-#' @param f_import Function to import with if file exists and `overwrite = TRUE`.
-#' @param f_export Function to export with if `export = TRUE` .
-#' @param append Whether to append. Supersedes `export` and `overwrite`.
-#' @param export Whether to export. Supersedes `overwrite.
-#' @param overwrite Whether to overwrite.
+#' @inheritParams do_get
 #' @export
-.import_tweets <-
+.retrieve_tweets <-
   function(user = 'xGPhilosophy',
            n = 3200,
            ...,
@@ -71,20 +63,25 @@
 #' Import tweets
 #' 
 #' Import tweets from xGPhilosophy
-#' @details This is a wrapper around the non-exported `.import_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `train`.
-#' @param train Whether to re-pull all tweets (`TRUE`), or just grab the newest (`FALSE`).
-#' @rdname import_tweets
-import_tweets <- function(train = TRUE, ...) {
-  if(train) {
+#' @details This is a wrapper around the non-exported `.retrieve_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `method`
+#' @param method Whether to retrieve existing saved tweets (`"none"`), re-retrieve all of them (`"all"`), or only return and save new tweets that don't exist in the saved tweets (`"new"`), .
+#' @rdname retrieve_tweets
+retrieve_tweets <- function(method = c('none', 'new', 'all'), ...) {
+  method <- match.arg(method)
+  if(method == 'all') {
     append <- FALSE
     export <- TRUE
     overwrite <- TRUE
-  } else {
+  } else if(method == 'new') {
     append <- TRUE
     export <- TRUE
     overwrite <- TRUE
+  } else if(method == 'none') {
+    append <- FALSE
+    export <- FALSE
+    overwrite <- FALSE
   }
-  .import_tweets(
+  .retrieve_tweets(
     append = append,
     export = export,
     overwrite = overwrite,

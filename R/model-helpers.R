@@ -94,7 +94,7 @@
       cols_id = 'idx',
       col_wt = 'wt',
       col_strata = 'created_at',
-      cols_extra = c('text', 'created_at', 'tm_a', 'tm_h', cols_suffix$col, 'estimated_followers_count', 'favorite_count', 'retweet_count'),
+      cols_extra = c('is_fresh', 'text', 'created_at', 'tm_a', 'tm_h', cols_suffix$col, 'estimated_followers_count', 'favorite_count', 'retweet_count'),
       cols_x = c('estimated_followers_count', cols_time$col, cols_suffix$col),
       cols_x_names = c('xGPhilopher\'s # of Followers', cols_time$lab, cols_suffix$lab)
     )
