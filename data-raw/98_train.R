@@ -1,10 +1,11 @@
 
-train <- TRUE
+train <- FALSE
+method <- ifelse(train, 'all', 'new')
 dir_data <- get_dir_data()
 valid_stems <- get_valid_stems()
 
 .f_transform <- function() {
-  tweets <- retrieve_tweets(method = 'none')
+  tweets <- retrieve_tweets(method = method)
   tweets %>% transform_tweets(train = train)
 }
 
@@ -19,13 +20,12 @@ tweets_transformed <-
   )
 tweets_transformed
 
-
 purrr::walk(
   valid_stems,
   ~ do_fit(
     tweets_transformed = tweets_transformed,
     stem = .x,
-    .overwrite = list(tune = FALSE, fit = TRUE)
+    .overwrite = list(tune = train, fit = TRUE)
   )
 )
 

@@ -27,10 +27,11 @@
       sprintf('estimated_followers_count_%s', suffix) %>% sym()
     
     if (!train & retrieve) {
-      tms_distinct <- data %>% .distinct12_at(suffix = .get_valid_suffixes())
+
+      tms_distinct <- data %>% .distinct12_at(col = 'tm', suffix = .get_valid_suffixes())
       users <-
         tm_accounts_mapping %>% 
-        dplyr::semi_join(tms_distinct, by = 'user_id') %>% 
+        dplyr::semi_join(tms_distinct, by = 'tm') %>% 
         dplyr::pull(user_id)
       if(length(users) == 0L) {
         .display_warning('Could not retrieve most up-to-date follower count for {length(tms_distinct)} teams. Using pre-saved info.')
@@ -73,6 +74,7 @@
 
 #' @noRd
 .add_estimated_follower_count_cols <- function(data, ...) {
+  # browser()
   data %>% 
     .add_estimated_follower_count_col('h', ...) %>% 
     .add_estimated_follower_count_col('a', ...)
@@ -80,6 +82,7 @@
 
 #' @noRd
 .fix_tm_col <- function(data, suffix = .get_valid_suffixes()) {
+  # browser()
   .validate_suffix(suffix)
   col_tm_sym <- sprintf('tm_%s', suffix) %>% sym()
   col_tm_correct_sym <- sprintf('tm_correct_%s', suffix) %>% sym()
@@ -141,12 +144,10 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   
   latest_tweet <- tweets %>% dplyr::slice_max(created_at)
   latest_followers_count <- latest_tweet$followers_count
-  
+  latest_date <- latest_tweet$created_at %>% lubridate::date()
   if(train) {
     
     followers_count_diff <- latest_followers_count - first_followers_count
-    latest_date <- latest_tweet$created_at %>% lubridate::date()
-    
     res_init <-
       res_init %>% 
       # This is a linear estimate of follower count at the tweet time.
@@ -224,18 +225,21 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       # Drop non-score line tweets that weren't caught by previous filter.
       tidyr::drop_na(xg_h, g_h, g_a, xg_a) %>%
       # There's a Biden Trump tweet that won't get past this filter. This filter helps overcome other weird tweets.
-      dplyr::filter(g_h <= 20 & g_a <= 20) %>% 
-      .fix_tm_cols() %>% 
-      .add_estimated_follower_count_cols(latest_date = latest_date, train = train, ...) %>% 
-      # Don't keep games where neither side's followers can be estimated.
-      # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
-      dplyr::select(-created_date) %>% 
-      dplyr::arrange(created_at) %>% 
-      dplyr::mutate(
-        idx = dplyr::row_number(created_at)
-      ) %>% 
-      dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
+      dplyr::filter(g_h <= 20 & g_a <= 20)
   )
+
+  res <-
+    res %>% 
+    .fix_tm_cols() %>% 
+    .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
+    # Don't keep games where neither side's followers can be estimated.
+    # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
+    dplyr::select(-created_date) %>% 
+    dplyr::arrange(created_at) %>% 
+    dplyr::mutate(
+      idx = dplyr::row_number(created_at)
+    ) %>% 
+    dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
   if(train) {
     res <-
       res %>% 

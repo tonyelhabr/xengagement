@@ -63,7 +63,13 @@ shap <-
   valid_stems %>%
   setNames(., .) %>% 
   purrr::map_dfr(.f_import_shap, .id = 'stem') %>% 
-  dplyr::arrange(stem, idx)
+  dplyr::rename(pred = .pred) %>% 
+  tidyr::pivot_wider(
+    names_from = stem,
+    values_from = c(pred, shap_value),
+    names_glue = '{stem}_{.value}'
+  ) %>% 
+  dplyr::arrange(idx, feature)
 shap
 readr::write_rds(shap, .path_data_rds(file = 'shap'))
 
@@ -93,7 +99,12 @@ suppressMessages(
       dplyr::one_of(cols_lst$cols_id),
       dplyr::one_of(cols_lst$cols_extra),
       dplyr::matches('^(favorite|retweet)_')
-    ) %>%
+    ) %>% 
+    dplyr::mutate(
+      favorite_diff = favorite_pred - favorite_count,
+      retweet_diff = retweet_pred - retweet_count,
+      dplyr::across(text, ~sprintf('%s: %s (%.2f) %d-%d (%.2f) %s', lubridate::date(created_at), tm_h, xg_h, g_h, g_a, xg_a, tm_a))
+    ) %>% 
     dplyr::arrange(idx)
 )
 preds

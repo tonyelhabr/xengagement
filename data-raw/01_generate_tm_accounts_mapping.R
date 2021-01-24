@@ -39,8 +39,8 @@ tm_accounts_mapping
 
 tm_corrections <-
   dplyr::tibble(
-    tm = c('Spurs', 'Man Utd', 'Inter', 'Bayern', 'BVB', 'Leipzig'),
-    tm_correct = c('Tottenham', 'Man United', 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'RB Leipzig')
+    tm = c('Spurs', 'Man Utd', 'Inter', 'Bayern', 'BVB', 'Dortmund', 'Leipzig'),
+    tm_correct = c('Tottenham', 'Man United', 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'BVB Dortmund', 'RB Leipzig')
   )
 
 usethis::use_data(tm_accounts, tm_mapping, tm_accounts_mapping, tm_corrections, overwrite = TRUE, internal = TRUE)
