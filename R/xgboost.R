@@ -113,7 +113,7 @@
   }
 
 #' @noRd
-.shap_xgb <- function(fit, x_mat, preds) {
+.shap_xgb <- function(fit, x_mat, preds, col_y) {
   
   suppressWarnings(
     feature_values_init <-
@@ -143,7 +143,7 @@
     shap_init %>%
     dplyr::bind_cols(
       preds %>%
-        dplyr::select(idx, .pred)
+        dplyr::select(idx, .pred, .actual = !!sym(col_y))
     )
   shap
 }

@@ -145,22 +145,31 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   latest_tweet <- tweets %>% dplyr::slice_max(created_at)
   latest_followers_count <- latest_tweet$followers_count
   latest_date <- latest_tweet$created_at %>% lubridate::date()
-  if(train) {
-    
-    followers_count_diff <- latest_followers_count - first_followers_count
-    res_init <-
-      res_init %>% 
-      # This is a linear estimate of follower count at the tweet time.
-      dplyr::mutate(
-        idx = dplyr::row_number(created_at),
-        estimated_followers_count = !!first_followers_count + round((idx / max(idx)) * !!followers_count_diff, 0)
-      ) %>% 
-      dplyr::select(-idx)
-  } else {
-    res_init <-
-      res_init %>% 
-      dplyr::mutate(estimated_followers_count = !!latest_followers_count)
-  }
+  # if(train) {
+  #   
+  #   followers_count_diff <- latest_followers_count - first_followers_count
+  #   res_init <-
+  #     res_init %>% 
+  #     # This is a linear estimate of follower count at the tweet time.
+  #     dplyr::mutate(
+  #       idx = dplyr::row_number(created_at),
+  #       estimated_followers_count = !!first_followers_count + round((idx / max(idx)) * !!followers_count_diff, 0)
+  #     ) %>% 
+  #     dplyr::select(-idx)
+  # } else {
+  #   res_init <-
+  #     res_init %>% 
+  #     dplyr::mutate(estimated_followers_count = !!latest_followers_count)
+  # }
+  followers_count_diff <- latest_followers_count - first_followers_count
+  res_init <-
+    res_init %>% 
+    # This is a linear estimate of follower count at the tweet time.
+    dplyr::mutate(
+      idx = dplyr::row_number(created_at),
+      estimated_followers_count = !!first_followers_count + round((idx / max(idx)) * !!followers_count_diff, 0)
+    ) %>% 
+    dplyr::select(-idx)
   
   suppressWarnings(
     res <-

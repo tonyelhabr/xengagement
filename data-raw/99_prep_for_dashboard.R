@@ -9,27 +9,8 @@ dir_data <- get_dir_data()
 }
 .path_data_rds <- purrr::partial(.path_data, ext = 'rds', ... = )
 
-data <- file.path(dir_data, 'tweets_transformed.parquet') %>% arrow::read_parquet()
-data
-
-data_rescaled_long <-
-  data %>% 
-  dplyr::select(
-    dplyr::all_of(cols_lst$cols_id),
-    dplyr::any_of(cols_lst$cols_x)
-  ) %>% 
-  as.data.frame() %>% 
-  dplyr::mutate(dplyr::across(-idx, scales::rescale)) %>% 
-  tidyr::gather(
-    'feature',
-    'value',
-    -c(idx)
-  ) %>% 
-  dplyr::as_tibble()
-data_rescaled_long
-
 # ----
-# Maybe this should be exported data (with `usethis::use_data()`)?
+# Maybe this should be exported tweets_transformed (with `usethis::use_data()`)?
 cols_x <- 
   dplyr::tibble(
     lab = c(cols_lst$cols_x_names, 'Baseline'),
@@ -37,41 +18,6 @@ cols_x <-
   )
 cols_x
 readr::write_rds(cols_x, .path_data_rds(file = 'cols_x'))
-
-# shap ----
-.f_import_shap <- function(stem) {
-  path <- file.path(dir_data, sprintf('shap_%s.parquet', stem))
-  shap <- path %>% arrow::read_parquet()
-  shap_long <-
-    shap %>%
-    tidyr::pivot_longer(
-      -c(idx, .pred),
-      names_to = 'feature',
-      values_to = 'shap_value'
-    ) %>%
-    dplyr::mutate(sign = dplyr::if_else(shap_value < 0, 'neg', 'pos') %>% factor())
-  shap_long
-
-  res <-
-    shap_long %>% 
-    dplyr::full_join(data_rescaled_long, by = c('idx', 'feature')) %>% 
-    dplyr::left_join(cols_x, by = c('feature'))
-  res
-}
-
-shap <-
-  valid_stems %>%
-  setNames(., .) %>% 
-  purrr::map_dfr(.f_import_shap, .id = 'stem') %>% 
-  dplyr::rename(pred = .pred) %>% 
-  tidyr::pivot_wider(
-    names_from = stem,
-    values_from = c(pred, shap_value),
-    names_glue = '{stem}_{.value}'
-  ) %>% 
-  dplyr::arrange(idx, feature)
-shap
-readr::write_rds(shap, .path_data_rds(file = 'shap'))
 
 # ----
 .f_import_preds <- function(stem) {
@@ -99,16 +45,90 @@ suppressMessages(
       dplyr::one_of(cols_lst$cols_id),
       dplyr::one_of(cols_lst$cols_extra),
       dplyr::matches('^(favorite|retweet)_')
-    ) %>% 
-    dplyr::mutate(
-      favorite_diff = favorite_pred - favorite_count,
-      retweet_diff = retweet_pred - retweet_count,
-      dplyr::across(text, ~sprintf('%s: %s (%.2f) %d-%d (%.2f) %s', lubridate::date(created_at), tm_h, xg_h, g_h, g_a, xg_a, tm_a))
-    ) %>% 
-    dplyr::arrange(idx)
+    )
 )
-preds
+preds <-
+  preds %>% 
+  dplyr::mutate(
+    favorite_diff = favorite_pred - favorite_count,
+    retweet_diff = retweet_pred - retweet_count,
+    dplyr::across(
+      text,
+      ~ sprintf(
+        '%s H%02d (%s): %s (%.2f) %d-%d (%.2f) %s',
+        lubridate::date(created_at),
+        lubridate::hour(created_at),
+        lubridate::wday(created_at, label = TRUE),
+        tm_h,
+        xg_h,
+        g_h,
+        g_a,
+        xg_a,
+        tm_a
+      )
+    )
+  ) %>% 
+  dplyr::arrange(idx)
+preds %>% select(text)
 readr::write_rds(preds, .path_data_rds(file = 'preds'))
+
+# shap ----
+tweets_transformed <- file.path(dir_data, 'tweets_transformed.parquet') %>% arrow::read_parquet()
+tweets_transformed
+
+tweets_rescaled_long <-
+  tweets_transformed %>% 
+  dplyr::select(
+    dplyr::all_of(cols_lst$cols_id),
+    dplyr::any_of(cols_lst$cols_x)
+  ) %>% 
+  as.data.frame() %>% 
+  dplyr::mutate(dplyr::across(-idx, scales::rescale)) %>% 
+  tidyr::gather(
+    'feature',
+    'value',
+    -c(idx)
+  ) %>% 
+  dplyr::as_tibble()
+tweets_rescaled_long
+
+.f_import_shap <- function(stem) {
+  path <- file.path(dir_data, sprintf('shap_%s.parquet', stem))
+  shap <- path %>% arrow::read_parquet()
+  shap_long <-
+    shap %>%
+    tidyr::pivot_longer(
+      -c(idx, .pred, .actual),
+      names_to = 'feature',
+      values_to = 'shap_value'
+    ) %>%
+    dplyr::mutate(sign = dplyr::if_else(shap_value < 0, 'neg', 'pos') %>% factor())
+  shap_long
+
+  res <-
+    shap_long %>% 
+    dplyr::full_join(tweets_rescaled_long, by = c('idx', 'feature')) %>% 
+    dplyr::left_join(cols_x, by = c('feature'))
+  res
+}
+
+shap <-
+  valid_stems %>%
+  setNames(., .) %>% 
+  purrr::map_dfr(.f_import_shap, .id = 'stem') %>% 
+  dplyr::rename(pred = .pred) %>% 
+  tidyr::pivot_wider(
+    names_from = stem,
+    values_from = c(pred, shap_value),
+    names_glue = '{stem}_{.value}'
+  ) %>% 
+  dplyr::arrange(idx, feature)
+shap
+shap %>% 
+  filter(feature == 'estimated_followers_count')
+
+readr::write_rds(shap, .path_data_rds(file = 'shap'))
+
 
 # ----
 # TODO

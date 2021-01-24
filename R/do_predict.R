@@ -68,7 +68,9 @@ do_predict <-
         .shap_xgb(
           x_mat = x_mat,
           fit = fit,
-          preds = preds
+          preds = preds,
+          # Is there a non-hacky way to get around this?
+          col_y = str_remove(cols_lst$col_y, '_log')
         )
     }
     
