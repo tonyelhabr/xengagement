@@ -50,8 +50,9 @@ suppressMessages(
 preds <-
   preds %>% 
   dplyr::mutate(
-    favorite_diff = favorite_pred - favorite_count,
-    retweet_diff = retweet_pred - retweet_count,
+    favorite_diff = favorite_count - favorite_pred,
+    retweet_diff = retweet_count - retweet_pred,
+    dplyr::across(dplyr::matches('_diff$'), list(prnk = ~dplyr::percent_rank(.x))),
     dplyr::across(
       text,
       ~ sprintf(
@@ -69,7 +70,7 @@ preds <-
     )
   ) %>% 
   dplyr::arrange(idx)
-preds %>% select(text)
+preds %>% arrange(favorite_diff_prnk) %>% arrange(-favorite_diff_prnk) %>% select(matches('_diff'))
 readr::write_rds(preds, .path_data_rds(file = 'preds'))
 
 # shap ----
@@ -107,7 +108,9 @@ tweets_rescaled_long
 
   res <-
     shap_long %>% 
-    dplyr::full_join(tweets_rescaled_long, by = c('idx', 'feature')) %>% 
+    dplyr::full_join(
+      tweets_rescaled_long, by = c('idx', 'feature')
+    ) %>% 
     dplyr::left_join(cols_x, by = c('feature'))
   res
 }
@@ -116,17 +119,17 @@ shap <-
   valid_stems %>%
   setNames(., .) %>% 
   purrr::map_dfr(.f_import_shap, .id = 'stem') %>% 
-  dplyr::rename(pred = .pred) %>% 
+  dplyr::rename(pred = .pred, count = .actual) %>% 
   tidyr::pivot_wider(
     names_from = stem,
-    values_from = c(pred, shap_value),
+    values_from = c(pred, count, sign, shap_value),
     names_glue = '{stem}_{.value}'
   ) %>% 
+  dplyr::mutate(dplyr::across(where(is.numeric), ~dplyr::coalesce(.x, 0))) %>% 
+  dplyr::left_join(preds %>% dplyr::select(idx, text), by = 'idx') %>% 
+  dplyr::filter(feature != 'baseline') %>% 
+  dplyr::mutate(dplyr::across(text, ~forcats::fct_reorder(.x, dplyr::desc(.x)))) %>% 
   dplyr::arrange(idx, feature)
-shap
-shap %>% 
-  filter(feature == 'estimated_followers_count')
-
 readr::write_rds(shap, .path_data_rds(file = 'shap'))
 
 
@@ -140,10 +143,10 @@ mape_retweet <-
   preds %>% 
   yardstick::mape(retweet_pred, retweet_count)
 
-mapes <- mape_favorite + mape_retweet
+mapes <- mape_favorite$.estimate + mape_retweet$.estimate
 # Yes, flip the weights so that the more accurate one gets higher weighting
-wt_favorite <- mape_retweet / mapes
-wt_retweet <- mape_favorite / mapes
+wt_favorite <- mape_retweet$.estimate / mapes
+wt_retweet <- mape_favorite$.estimate / mapes
 
 # # Need the acutal ranges? Or can use pranks of differences
 # preds_agg <-
