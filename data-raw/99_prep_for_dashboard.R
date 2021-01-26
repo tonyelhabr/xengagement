@@ -7,7 +7,8 @@ dir_data <- get_dir_data()
 .path_data_x <- function(file, ext = NULL) {
   .path_data(file = sprintf('%s_%s', file, stem), ext = ext)
 }
-.path_data_rds <- purrr::partial(.path_data, ext = 'rds', ... = )
+# .path_data_rds <- purrr::partial(.path_data, ext = 'rds', ... = )
+.path_data_csv <- purrr::partial(.path_data, ext = 'csv', ... = )
 
 # ----
 # Maybe this should be exported tweets_transformed (with `usethis::use_data()`)?
@@ -17,7 +18,8 @@ cols_x <-
     feature = c(cols_lst$cols_x, 'baseline')
   )
 cols_x
-readr::write_rds(cols_x, .path_data_rds(file = 'cols_x'))
+# readr::write_rds(cols_x, .path_data_rds(file = 'cols_x'))
+# readr::write_csv(cols_x, .path_data_csv(file = 'cols_x'))
 
 # ----
 .f_import_preds <- function(stem) {
@@ -56,22 +58,33 @@ preds <-
     dplyr::across(
       text,
       ~ sprintf(
-        '%s H%02d (%s): %s (%.2f) %d-%d (%.2f) %s',
+        '%s: %s (%.2f) %d-%d (%.2f) %s',
         lubridate::date(created_at),
-        lubridate::hour(created_at),
-        lubridate::wday(created_at, label = TRUE),
+        # lubridate::hour(created_at),
+        # lubridate::wday(created_at, label = TRUE),
         tm_h,
         xg_h,
         g_h,
         g_a,
         xg_a,
         tm_a
-      )
+      ),
+      lab_hover = 
+        sprintf(
+          '%s (%.2f) %d-%d (%.2f) %s',
+          tm_h,
+          xg_h,
+          g_h,
+          g_a,
+          xg_a,
+          tm_a
+        )
     )
   ) %>% 
   dplyr::arrange(idx)
 preds %>% arrange(favorite_diff_prnk) %>% arrange(-favorite_diff_prnk) %>% select(matches('_diff'))
-readr::write_rds(preds, .path_data_rds(file = 'preds'))
+# readr::write_rds(preds, .path_data_rds(file = 'preds'))
+readr::write_csv(preds, .path_data_csv(file = 'preds'))
 
 # shap ----
 tweets_transformed <- file.path(dir_data, 'tweets_transformed.parquet') %>% arrow::read_parquet()
@@ -130,8 +143,8 @@ shap <-
   dplyr::filter(feature != 'baseline') %>% 
   dplyr::mutate(dplyr::across(text, ~forcats::fct_reorder(.x, dplyr::desc(.x)))) %>% 
   dplyr::arrange(idx, feature)
-readr::write_rds(shap, .path_data_rds(file = 'shap'))
-
+# readr::write_rds(shap, .path_data_rds(file = 'shap'))
+readr::write_csv(shap, .path_data_csv(file = 'shap'))
 
 # ----
 # TODO

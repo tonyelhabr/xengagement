@@ -7,6 +7,7 @@
 #' Directory for package-stored data
 #' 
 #' Where to retrieve package-stored data
+#' @export
 get_dir_data <- .get_dir_data
 
 #' @noRd

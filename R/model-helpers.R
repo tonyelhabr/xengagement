@@ -25,7 +25,7 @@
           lab = ~dplyr::case_when(
             .x == 'g' ~ 'Goals',
             .x == 'xg' ~ 'xG',
-            .x == 'estimated_followers_count' ~ 'Team\'s Twitter Account Followers (Est.)'
+            .x == 'estimated_followers_count' ~ 'Twitter Account Followers'
           )
         )
       ),
@@ -83,7 +83,7 @@
           )
         )
       ),
-      lab = sprintf('%s Order %s Fourier Term, %s', suffix_2_lab, suffix_1_lab, prefix_lab)
+      lab = sprintf('%s Order %s Term, %s', suffix_2_lab, suffix_1_lab, prefix_lab)
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
   
@@ -102,6 +102,9 @@
 }
 
 #' List of columns specifying use in model.
+#' 
+#' @inheritParams do_fit
+#' @export
 get_cols_lst <- .get_cols_lst
 
 #' @seealso \url{https://github.com/topepo/caret/blob/master/pkg/caret/R/createDataPartition.R}

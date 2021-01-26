@@ -6,6 +6,9 @@
 \usage{
 get_cols_lst(stem = get_valid_stems())
 }
+\arguments{
+\item{stem}{Either \code{"favorite"} or \code{"retweet"}}
+}
 \description{
 List of columns specifying use in model.
 }

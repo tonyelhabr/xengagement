@@ -127,7 +127,7 @@
 #' @param tweet Tweets retrieved with `retrieve_tweets`
 #' @param ... Not currently used
 #' @param train If `TRUE`, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.
-#' @param first_followers_account Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
+#' @param first_followers_count Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
 transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
   
   now <- lubridate::now()
@@ -234,7 +234,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       # Drop non-score line tweets that weren't caught by previous filter.
       tidyr::drop_na(xg_h, g_h, g_a, xg_a) %>%
       # There's a Biden Trump tweet that won't get past this filter. This filter helps overcome other weird tweets.
-      dplyr::filter(g_h <= 20 & g_a <= 20)
+      dplyr::filter(g_h <= 10 & g_a <= 10 & xg_h <= 10 & xg_a <= 10)
   )
 
   res <-

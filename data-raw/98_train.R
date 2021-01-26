@@ -6,7 +6,9 @@ valid_stems <- get_valid_stems()
 
 .f_transform <- function() {
   tweets <- retrieve_tweets(method = method)
-  tweets %>% transform_tweets(train = train)
+  tweets_transformed <- tweets %>% transform_tweets(train = train)
+  .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
+  tweets_transformed
 }
 
 tweets_transformed <-
