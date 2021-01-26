@@ -9,6 +9,8 @@ do_predict <-
   function(tweets_transformed, 
            stem = get_valid_stems(), 
            overwrite = TRUE, 
+           fit = NULL,
+           path_fit = NULL,
            ...,
            .overwrite = list(
              preds = NULL,
@@ -26,14 +28,26 @@ do_predict <-
     }
     
     .path_data_parquet_x <- purrr::partial(.path_data_x, ext = 'parquet', ... = )
-    path_fit <- .path_data_x('fit')
+    if(is.null(fit)) {
+
+      path_fit <- .path_data_x('fit')
+      assertthat::assert_that(
+        file.exists(path_fit),
+        msg = 'Please specify `fit` or provide a valid `path_fit.`'
+      )
+      .display_info('Successfully imported fit from `"{path_fit}"` (since it was not provided in `fit` and `path_fit` was originally `NULL`).')
+    }
 
     path_preds <- .path_data_parquet_x('preds')
     path_shap <- .path_data_parquet_x('shap')
     
     data <- tweets_transformed
     
-    fit <- xgboost::xgb.load(path_fit)
+    .import_safely <- purrr::safely(xgboost::xgb.load, otherwise = NULL)
+    fit <- .import_safely(path_fit)
+    if(is.null(fit)) {
+      .display_error('The `fit` loaded from `path_fit = "{path_fit}"` is not an `{xgboost}` model.')
+    }
     
     col_y_sym <- cols_lst$col_y %>% sym()
     x_mat <- data %>% dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% .df2mat()

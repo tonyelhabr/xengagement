@@ -39,12 +39,17 @@
       # tweets <- rtweet::get_timeline(user = user, n = n, max_id = latest_tweet$status_id, ...)
       tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id)
       # `tweets_new` always shares at least 1 tweet, so need to distinct before checking number of new.
-      tweets <- 
-        dplyr::bind_rows(tweets_new, tweets_existing) %>% 
-        dplyr::distinct(status_id, .keep_all = TRUE) %>% 
-        dplyr::arrange(created_at)
-      n_new <- nrow(tweets)
-      .display_info('Identified {n_new - n_existing} new tweets.')
+      n_new <- nrow(tweets_new)
+      if(n_new > 0) {
+        .display_info('Identified {n_new - n_existing} new tweets.')
+        tweets <- 
+          dplyr::bind_rows(tweets_new, tweets_existing) %>% 
+          # dplyr::distinct(status_id, .keep_all = TRUE) %>% 
+          dplyr::arrange(created_at)
+      } else {
+        .display_info('No new tweets identified.')
+        tweets <- tweets_existing
+      }
     } else {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
     }

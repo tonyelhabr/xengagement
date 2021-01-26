@@ -26,11 +26,12 @@ do_fit <-
     #     tune = NULL, 
     #     fit = NULL
     # )
-    # .overwrite$tune <- .overwrite$tune %||% overwrite
-    # .overwrite$fit <- .overwrite$fit %||% overwrite
-    
+
     .validate_stem(stem)
     cols_lst <- .get_cols_lst(stem = stem)
+    
+    .overwrite$tune <- .overwrite$tune %||% overwrite
+    .overwrite$fit <- .overwrite$fit %||% overwrite
     
     data <-
       tweets_transformed %>% 

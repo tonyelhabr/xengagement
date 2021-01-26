@@ -22,20 +22,32 @@ tweets_transformed <-
   )
 tweets_transformed
 
-purrr::walk(
-  valid_stems,
-  ~ do_fit(
-    tweets_transformed = tweets_transformed,
-    stem = .x,
-    .overwrite = list(tune = train, fit = TRUE)
+res_fit <-
+  valid_stems %>% 
+  setNames(., .) %>% 
+  purrr::map(
+    ~ do_fit(
+      tweets_transformed = tweets_transformed,
+      stem = .x,
+      .overwrite = list(tune = train, fit = TRUE)
+    )
   )
+
+.pluck_fit <- function(stem) {
+  .validate_stem(stem)
+  res_fit %>% purrr::pluck(stem) %>% purrr::pluck('fit')
+}
+fit_favorites <- .pluck_fit('favorite')
+fit_retweets <- .pluck_fit('retweet')
+
+res_preds <-
+  purrr::map(
+    valid_stems,
+    ~ do_predict(
+      tweets_transformed = tweets_transformed,
+      stem = .x,
+      .overwrite = list(preds = TRUE, shap = TRUE)
+    )
 )
 
-purrr::walk(
-  valid_stems,
-  ~ do_predict(
-    tweets_transformed = tweets_transformed,
-    stem = .x,
-    .overwrite = list(preds = TRUE, shap = TRUE)
-  )
-)
+usethis::use_data(fit_favorites, fit_retweets, overwrite = TRUE)
