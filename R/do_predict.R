@@ -4,6 +4,7 @@
 #' Make predictions for new tweets, appending to existing predictions and SHAP values.
 #' @inheritParams do_fit
 #' @param ... Unused
+#' @export
 do_predict <- 
   function(tweets_transformed, 
            stem = get_valid_stems(), 

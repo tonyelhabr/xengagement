@@ -7,6 +7,7 @@
 #' @param overwrite Whether to overwrite existing fit, predictions, and SHAP values.
 #' @param ... Extra arguments to pass to `.transform_tweets()`
 #' @param .overwrite Specific booleans for overwriting specific outputs saved to file. Default is to use same value as `overwrite`. Only use this if you know what you're doing.
+#' @export
 do_fit <-
   function(tweets_transformed,
            stem = get_valid_stems(),

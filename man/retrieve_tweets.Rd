@@ -47,7 +47,7 @@ retrieve_tweets(method = c("none", "new", "all"), ...)
 
 \item{overwrite}{Whether to overwrite.}
 
-\item{method}{Whether to retrieve existing saved tweets (\code{"none"}), re-retrieve all of them (\code{"all"}), or only return and save new tweets that don't exist in the saved tweets (\code{"new"}), .}
+\item{method}{Whether to retrieve existing saved tweets (\code{"none"}), re-retrieve all of them (\code{"all"}), or only return and save new tweets that don't exist in the saved tweets (\code{"new"}).}
 }
 \description{
 Import tweets from xGPhilosophy

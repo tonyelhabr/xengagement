@@ -68,7 +68,8 @@
 #' 
 #' Import tweets from xGPhilosophy
 #' @details This is a wrapper around the non-exported `.retrieve_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `method`
-#' @param method Whether to retrieve existing saved tweets (`"none"`), re-retrieve all of them (`"all"`), or only return and save new tweets that don't exist in the saved tweets (`"new"`), .
+#' @param method Whether to retrieve existing saved tweets (`"none"`), re-retrieve all of them (`"all"`), or only return and save new tweets that don't exist in the saved tweets (`"new"`).
+#' @export
 #' @rdname retrieve_tweets
 retrieve_tweets <- function(method = c('none', 'new', 'all'), ...) {
   method <- match.arg(method)

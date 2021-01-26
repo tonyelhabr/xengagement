@@ -13,6 +13,7 @@
 #' @param append Whether to append. Supersedes `export` and `overwrite`.
 #' @param export Whether to export. Supersedes `overwrite.
 #' @param overwrite Whether to overwrite.
+#' @export
 do_get <-
   function(...,
            f = NULL,

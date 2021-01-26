@@ -23,6 +23,7 @@ do_getengagement_seed <- function() {
 #' Valid items to predict for
 #' 
 #' Valid items to predict for. Either `"favorite"` or `"retweet"`.
+#' @export
 get_valid_stems <- memoise::memoise({function() {
   c('favorite', 'retweet')
 }})
