@@ -11,7 +11,8 @@ do_predict(
   fit = NULL,
   path_fit = NULL,
   ...,
-  .overwrite = list(preds = NULL, shap = NULL)
+  .overwrite = list(preds = NULL, shap = NULL),
+  .path = list(preds = NULL, shap = NULL)
 )
 }
 \arguments{
@@ -21,9 +22,15 @@ do_predict(
 
 \item{overwrite}{Whether to overwrite existing fit, predictions, and SHAP values.}
 
+\item{fit}{xgboost fit}
+
+\item{path_fit}{If fit is not provided, then the fit is imported from \code{path_fit}.}
+
 \item{...}{Unused}
 
 \item{.overwrite}{Specific booleans for overwriting specific outputs saved to file. Default is to use same value as \code{overwrite}. Only use this if you know what you're doing.}
+
+\item{.path}{Specific paths to export the predictions and SHAP values to. If left as \code{NULL}, they are saved as \code{"preds_{stem}.rds"} and \code{"shap_{stem}.rds"} in the directory at \code{getOption("xengagement.dir_data")}. As with \code{.overwrite}, only use this if you know what you're doing.}
 }
 \description{
 Make predictions for new tweets, appending to existing predictions and SHAP values.

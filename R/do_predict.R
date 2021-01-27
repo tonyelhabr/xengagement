@@ -3,6 +3,9 @@
 #' 
 #' Make predictions for new tweets, appending to existing predictions and SHAP values.
 #' @inheritParams do_fit
+#' @param fit xgboost fit
+#' @param path_fit If fit is not provided, then the fit is imported from `path_fit`.
+#' @param .path Specific paths to export the predictions and SHAP values to. If left as `NULL`, they are saved as `"preds_{stem}.rds"` and `"shap_{stem}.rds"` in the directory at `getOption("xengagement.dir_data")`. As with `.overwrite`, only use this if you know what you're doing.
 #' @param ... Unused
 #' @export
 do_predict <- 
@@ -15,6 +18,10 @@ do_predict <-
            .overwrite = list(
              preds = NULL,
              shap = NULL
+           ),
+           .path = list(
+             preds = NULL,
+             shap = NULL
            )) {
     
     .validate_stem(stem)
@@ -25,7 +32,7 @@ do_predict <-
       .path_data(file = sprintf('%s_%s', file, stem), ext = ext)
     }
     
-    .path_data_parquet_x <- purrr::partial(.path_data_x, ext = 'parquet', ... = )
+    .path_data_rds_x <- purrr::partial(.path_data_x, ext = 'rds', ... = )
     if(!has_fit & !has_fit_path) {
       
       path_fit <- .path_data_x('fit')
@@ -37,8 +44,8 @@ do_predict <-
       .display_info('Successfully imported fit from `"{path_fit}"` (since it was not provided in `fit` and `path_fit` was originally `NULL`).')
     }
     
-    path_preds <- .path_data_parquet_x('preds')
-    path_shap <- .path_data_parquet_x('shap')
+    path_preds <- .path$preds %||% .path_data_rds_x('preds')
+    path_shap <- .path$preds %||% .path_data_rds_x('shap')
     
     
     cols_lst <- .get_cols_lst(stem = stem)
@@ -85,8 +92,8 @@ do_predict <-
       do_get(
         f = .f_predict,
         path = path_preds,
-        f_import = arrow::read_parquet,
-        f_export = arrow::write_parquet,
+        f_import = readr::read_rds,
+        f_export = readr::write_rds,
         append = FALSE,
         export = TRUE,
         overwrite = .overwrite$preds
@@ -107,8 +114,8 @@ do_predict <-
       do_get(
         f = .f_shap,
         path = path_shap,
-        f_import = arrow::read_parquet,
-        f_export = arrow::write_parquet,
+        f_import = readr::read_rds,
+        f_export = readr::write_rds,
         append = FALSE,
         export = TRUE,
         overwrite = .overwrite$shap

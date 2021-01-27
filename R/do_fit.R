@@ -7,6 +7,7 @@
 #' @param overwrite Whether to overwrite existing fit, predictions, and SHAP values.
 #' @param ... Extra arguments to pass to `.transform_tweets()`
 #' @param .overwrite Specific booleans for overwriting specific outputs saved to file. Default is to use same value as `overwrite`. Only use this if you know what you're doing.
+#' @param .path Specific paths to export the tune results and fitted model to. If left as `NULL`, they are saved as `"res_tune_cv_{stem}.rds"` and `"fit_{stem}"` in the directory at `getOption("xengagement.dir_data")`. As with `.overwrite`, only use this if you know what you're doing.
 #' @export
 do_fit <-
   function(tweets_transformed,
@@ -14,6 +15,10 @@ do_fit <-
            overwrite = TRUE, 
            ...,
            .overwrite = list(
+             tune = NULL,
+             fit = NULL
+           ),
+           .path = list(
              tune = NULL,
              fit = NULL
            )) {
@@ -29,10 +34,7 @@ do_fit <-
 
     .validate_stem(stem)
     cols_lst <- .get_cols_lst(stem = stem)
-    
-    .overwrite$tune <- .overwrite$tune %||% overwrite
-    .overwrite$fit <- .overwrite$fit %||% overwrite
-    
+
     data <-
       tweets_transformed %>% 
       dplyr::filter(!is_fresh)
@@ -40,13 +42,13 @@ do_fit <-
     .path_data_x <- function(file, ext = NULL) {
       .path_data(file = sprintf('%s_%s', file, stem), ext = ext)
     }
-    .path_data_parquet_x <- purrr::partial(.path_data_x, ext = 'parquet', ... = )
+    .path_data_rds_x <- purrr::partial(.path_data_x, ext = 'rds', ... = )
+
+    path_res_tune_cv <- .path$res_tune_cv %||% .path_data_x('res_tune_cv', ext = 'rds')
+    path_fit <- .path$fit %||% .path_data_x('fit')
     
-    # TODO: Make these arguments to the function, setting them to `NULL` by default.
-    path_res_tune_cv <- .path_data_x('res_tune_cv', ext = 'rds')
-    path_fit <- .path_data_x('fit')
-    path_preds <- .path_data_parquet_x('preds')
-    path_shap_wide <- .path_data_parquet_x('shap')
+    .overwrite$tune <- .overwrite$tune %||% overwrite
+    .overwrite$fit <- .overwrite$fit %||% overwrite
     
     col_y_sym <- cols_lst$col_y %>% sym()
     data <- data %>% tidyr::drop_na(!!col_y_sym)

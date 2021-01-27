@@ -124,7 +124,7 @@
 #' Transform tweets
 #' 
 #' Transform tweets into format for modeling. This can be saved and combined with SHAP values later. Follower growth of the xGPhilophy account is assumed to be linear per tweet, while growth of the team accounts is assumed to follow a concave curve.
-#' @param tweet Tweets retrieved with `retrieve_tweets`
+#' @param tweets Tweets retrieved with `retrieve_tweets`
 #' @param ... Not currently used
 #' @param train If `TRUE`, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.
 #' @param first_followers_count Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.

@@ -9,7 +9,8 @@ do_fit(
   stem = get_valid_stems(),
   overwrite = TRUE,
   ...,
-  .overwrite = list(tune = NULL, fit = NULL)
+  .overwrite = list(tune = NULL, fit = NULL),
+  .path = list(tune = NULL, fit = NULL)
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ do_fit(
 \item{...}{Extra arguments to pass to \code{.transform_tweets()}}
 
 \item{.overwrite}{Specific booleans for overwriting specific outputs saved to file. Default is to use same value as \code{overwrite}. Only use this if you know what you're doing.}
+
+\item{.path}{Specific paths to export the tune results and fitted model to. If left as \code{NULL}, they are saved as \code{"res_tune_cv_{stem}.rds"} and \code{"fit_{stem}"} in the directory at \code{getOption("xengagement.dir_data")}. As with \code{.overwrite}, only use this if you know what you're doing.}
 }
 \description{
 Fit model, make predictions, and generate SHAP values.
