@@ -79,8 +79,10 @@ retrieve_tweets <-
             tweets <- .distinctify_tweets(tweets_new, tweets_existing)
           }
         } else {
-          .display_info('No new tweets identified.')
-          return(tweets)
+          if(method == 'new') {
+            .display_info('No new tweets identified.')
+            return(tweets)
+          }
         } 
       }
     } else {
