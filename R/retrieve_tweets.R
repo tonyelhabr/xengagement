@@ -57,7 +57,7 @@ retrieve_tweets <-
     tweets_are_provided <- !is.null(tweets)
     if(path_exists & append | tweets_are_provided) {
       if(!export) {
-        .display_message('Setting `export = TRUE` since `append = TRUE` take higher priority.')
+        .display_info('Setting `export = TRUE` since `append = TRUE` take higher priority.')
         export <- TRUE
       }
       .display_info('Importing from `path = "{path}"` for appending.')
