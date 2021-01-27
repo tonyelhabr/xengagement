@@ -30,6 +30,7 @@
 #'   \item `"new"` only retrieve and return timeline since last tweet saved at `path`
 #' }
 #' @inheritParams do_get
+#' @export
 #' @rdname retrieve_tweets
 retrieve_tweets <-
   function(method = .get_valid_tweet_methods(),
