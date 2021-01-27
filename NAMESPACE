@@ -3,7 +3,6 @@
 export("%>%")
 export(":=")
 export(.data)
-export(.retrieve_tweets)
 export(as_label)
 export(as_name)
 export(do_fit)

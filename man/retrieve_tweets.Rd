@@ -20,7 +20,7 @@
   overwrite = FALSE
 )
 
-retrieve_tweets(method = c("none", "new", "all"), ...)
+retrieve_tweets(method = c("none", "all", "since", "new"), ...)
 }
 \arguments{
 \item{user}{User for whom to retrieve tweets for.}
@@ -47,18 +47,21 @@ retrieve_tweets(method = c("none", "new", "all"), ...)
 
 \item{overwrite}{Whether to overwrite.}
 
-\item{method}{Whether to retrieve existing saved tweets (\code{"none"}), re-retrieve all of them (\code{"all"}), or only return and save new tweets that don't exist in the saved tweets (\code{"new"}).}
+\item{method}{How to retrieve tweets.}
 }
 \description{
 Import tweets from xGPhilosophy
 }
 \details{
-You probably don't want to change any of the parameters of this function manually.
-
-This is a wrapper around the non-exported \code{.retrieve_tweets()}. \code{append}, \code{export}, and \code{overwrite} are determined for you based on \code{method}
+This is a wrapper around the non-exported \code{.retrieve_tweets()}. \code{append}, \code{export}, and \code{overwrite} are determined for you based on \code{method}.
 }
-\section{Functions}{
+\section{Valid methods}{
+
 \itemize{
-\item \code{.retrieve_tweets}: Import tweets from xGPhilosophy
-}}
+\item \code{"none"} return existing tweets at \code{path}
+\item \code{"all"} re-trieve and return entire timeline
+\item \code{"since"} retrieve timeline since last tweet saved at \code{path} and return it along with existing tweets (functionally this will return the same results as \code{"all"} , unless a tweet has since been deleted)
+\item \code{"new"} only retrieve and return timeline since last tweet saved at \code{path}
+}
+}
 

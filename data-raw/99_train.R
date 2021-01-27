@@ -1,11 +1,11 @@
 
 train <- FALSE
-method <- ifelse(train, 'all', 'new')
+method <- ifelse(train, 'all', 'since')
 dir_data <- get_dir_data()
 valid_stems <- get_valid_stems()
 
 .f_transform <- function() {
-  tweets <- retrieve_tweets(method = method)
+  tweets <- retrieve_tweets(method = 'since')
   tweets_transformed <- tweets %>% transform_tweets(train = train)
   .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
   tweets_transformed

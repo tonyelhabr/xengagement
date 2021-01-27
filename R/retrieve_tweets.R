@@ -1,14 +1,10 @@
 
-#' @details You probably don't want to change any of the parameters of this function manually.
-#' @describeIn retrieve_tweets Import tweets from xGPhilosophy
-#' @param user User for whom to retrieve tweets for.
-#' @param n Number of tweets to retrieve
-#' @param ... Extra parameters passed to `rtweet::get_timeline()`
 #' @inheritParams do_get
-#' @export
+#' @rdname retrieve_tweets
 .retrieve_tweets <-
   function(user = 'xGPhilosophy',
            n = 3200,
+           method,
            ...,
            dir = .get_dir_data(),
            file = sprintf('%s_timeline', user),
@@ -42,13 +38,17 @@
       n_new <- nrow(tweets_new)
       if(n_new > 0) {
         .display_info('Identified {n_new - n_existing} new tweets.')
-        tweets <- 
-          dplyr::bind_rows(tweets_new, tweets_existing) %>% 
-          # dplyr::distinct(status_id, .keep_all = TRUE) %>% 
-          dplyr::arrange(created_at)
+        if(method == 'new') {
+          tweets <- tweets_new
+        } else {
+          tweets <- 
+            dplyr::bind_rows(tweets_new, tweets_existing) %>% 
+            # dplyr::distinct(status_id, .keep_all = TRUE) %>% 
+            dplyr::arrange(created_at)
+        }
       } else {
         .display_info('No new tweets identified.')
-        tweets <- tweets_existing
+        return(tweets_existing)
       }
     } else {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
@@ -72,17 +72,27 @@
 #' Import tweets
 #' 
 #' Import tweets from xGPhilosophy
-#' @details This is a wrapper around the non-exported `.retrieve_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `method`
-#' @param method Whether to retrieve existing saved tweets (`"none"`), re-retrieve all of them (`"all"`), or only return and save new tweets that don't exist in the saved tweets (`"new"`).
+#' @details This is a wrapper around the non-exported `.retrieve_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `method`.
+#' @param method How to retrieve tweets.
+#' @param user User for whom to retrieve tweets for.
+#' @param n Number of tweets to retrieve
+#' @param ... Extra parameters passed to `rtweet::get_timeline()`
+#' @section Valid methods:
+#' \itemize{
+#'   \item `"none"` return existing tweets at `path`
+#'   \item `"all"` re-trieve and return entire timeline
+#'   \item `"since"` retrieve timeline since last tweet saved at `path` and return it along with existing tweets (functionally this will return the same results as `"all"` , unless a tweet has since been deleted)
+#'   \item `"new"` only retrieve and return timeline since last tweet saved at `path`
+#' }
 #' @export
 #' @rdname retrieve_tweets
-retrieve_tweets <- function(method = c('none', 'new', 'all'), ...) {
+retrieve_tweets <- function(method = c('none', 'all', 'since', 'new'), ...) {
   method <- match.arg(method)
   if(method == 'all') {
     append <- FALSE
     export <- TRUE
     overwrite <- TRUE
-  } else if(method == 'new') {
+  } else if(method == 'new' | method == 'since') {
     append <- TRUE
     export <- TRUE
     overwrite <- TRUE
@@ -95,6 +105,7 @@ retrieve_tweets <- function(method = c('none', 'new', 'all'), ...) {
     append = append,
     export = export,
     overwrite = overwrite,
+    method = method,
     ...
   )
 }
