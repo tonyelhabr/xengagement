@@ -8,6 +8,8 @@ do_predict(
   tweets_transformed,
   stem = get_valid_stems(),
   overwrite = TRUE,
+  fit = NULL,
+  path_fit = NULL,
   ...,
   .overwrite = list(preds = NULL, shap = NULL)
 )

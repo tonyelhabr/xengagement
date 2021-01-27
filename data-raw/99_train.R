@@ -39,15 +39,4 @@ res_fit <-
 }
 fit_favorites <- .pluck_fit('favorite')
 fit_retweets <- .pluck_fit('retweet')
-
-res_preds <-
-  purrr::map(
-    valid_stems,
-    ~ do_predict(
-      tweets_transformed = tweets_transformed,
-      stem = .x,
-      .overwrite = list(preds = TRUE, shap = TRUE)
-    )
-)
-
 usethis::use_data(fit_favorites, fit_retweets, overwrite = TRUE)
