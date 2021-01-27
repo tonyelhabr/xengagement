@@ -5,7 +5,7 @@ dir_data <- get_dir_data()
 valid_stems <- get_valid_stems()
 
 .f_transform <- function() {
-  tweets <- retrieve_tweets(method = 'since')
+  tweets <- retrieve_tweets(method = train)
   tweets_transformed <- tweets %>% transform_tweets(train = train)
   .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
   tweets_transformed
