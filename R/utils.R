@@ -24,9 +24,9 @@ do_getengagement_seed <- function() {
 #' 
 #' Valid items to predict for. Either `"favorite"` or `"retweet"`.
 #' @export
-get_valid_stems <- memoise::memoise({function() {
+get_valid_stems <- function() {
   c('favorite', 'retweet')
-}})
+}
 
 #' @noRd
 .validate_stem <- function(x = get_valid_stems(), ...) {
@@ -34,9 +34,9 @@ get_valid_stems <- memoise::memoise({function() {
 }
 
 #' @noRd
-.get_valid_suffixes <- memoise::memoise({function() {
+.get_valid_suffixes <- function() {
   c('h', 'a')
-}})
+}
 
 #' @noRd
 .validate_suffix <- function(x = .get_valid_suffixes(), ...) {

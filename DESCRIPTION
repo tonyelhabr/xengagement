@@ -19,7 +19,6 @@ Imports:
     glue,
     lubridate,
     magrittr,
-    memoise,
     purrr,
     readr,
     rio,
