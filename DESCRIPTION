@@ -27,8 +27,9 @@ Imports:
     stats,
     stringr,
     tidyr,
-    tweetrmd,
     xgboost
+Remotes: 
+    gadenbuie/tweetrmd
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
