@@ -1,36 +1,36 @@
 
+library(xengagement)
+options(xengagement.dir_data = 'inst/extdata')
+dir_figs <- 'inst/extdata'
 token <- xengagement::get_twitter_token()
 dir_data <- xengagement::get_dir_data()
 valid_stems <- xengagement::get_valid_stems()
 cols_lst <- xengagement::get_cols_lst(valid_stems[1]) # Doesn't matter what the target variable is.
 
 # data refresh ----
-# tweets_bot <-
-#   xengagement::retrieve_tweets(
-#     user = 'punditratio',
-#     method = 'since',
-#     export = TRUE,
-#     append = TRUE,
-#     token = token
-#   )
-# tweets_bot
+tweets_bot <-
+  xengagement::retrieve_tweets(
+    user = 'punditratio',
+    method = 'since',
+    export = TRUE,
+    token = token
+  )
+tweets_bot
 
 tweets_new <-
   xengagement::retrieve_tweets(
     method = 'new',
-    overwrite = FALSE,
     export = FALSE,
     token = token
   )
 tweets_new
 
 is_null <- is.null(tweets_new)
-is_null
 if(is_null) {
-  cat(sprintf('0 new tweet found at %s!', Sys.time()), call. = FALSE)
+  cat(sprintf('0 new tweet found at %s!', Sys.time()), , sep = '\n')
 } else {
   n_tweet <- nrow(tweets_new)
-  cat(sprintf('%d new tweet%s found at %s!', n_tweet, ifelse(n_tweet > 1L, 's', ''), Sys.time()))
+  cat(sprintf('%d new tweet%s found at %s!', n_tweet, ifelse(n_tweet > 1L, 's', ''), Sys.time()), sep = '\n')
   
   # .f_transform <- function() {
   #   tweets <- xengagement::retrieve_tweets(method = 'since', export = TRUE, append = TRUE, token = token)
@@ -55,11 +55,10 @@ if(is_null) {
       tweets = tweets_new,
       method = 'none',
       export = TRUE,
-      append = TRUE,
       token = token
     )
   tweets_transformed <- tweets %>% xengagement::transform_tweets(train = FALSE)
-  cat(sprintf('Reduced %s tweets to %s after transformation.', nrow(tweets), nrow(tweets_transformed)))
+  cat(sprintf('Reduced %s tweets to %s after transformation.', nrow(tweets), nrow(tweets_transformed)), sep = '\n')
   tweets_transformed
   
   res_preds <-
@@ -214,17 +213,18 @@ if(is_null) {
   
   res_screenshot <-
     preds %>% 
-    xengagement::screenshot_latest_tweet()
+    xengagement::screenshot_latest_tweet(dir = dir_figs)
   
   res_generate <-
     preds %>%
     dplyr::semi_join(tweets_new %>% dplyr::select(status_id), by = 'status_id') %>% 
-    tidyr::nest(data = -c(idx)) %>%
-    dplyr::mutate(res = purrr::map(
-      data,
+    tidyr::nest(data = -c(idx, status_id)) %>%
+    dplyr::mutate(res = purrr::map2(
+      data, status_id,
       ~ xengagement::generate_tweet(
-        pred = .x,
-        tweets = tweets,
+        pred = ..1,
+        tweets = tweets_bot,
+        in_reply_to_status_id = ..2,
         dry_run = TRUE
       )
     ))
@@ -269,7 +269,14 @@ if(is_null) {
         names_to = 'feature',
         values_to = 'shap_value'
       ) %>%
-      dplyr::mutate(sign = dplyr::if_else(shap_value < 0, 'neg', 'pos') %>% factor())
+      dplyr::mutate(
+        sign = 
+          dplyr::case_when(
+            shap_value < 0 ~ 'neg', 
+            shap_value > 0 ~ 'pos',
+            TRUE ~ 'neutral'
+          )
+      )
     shap_long
     
     res <-
@@ -301,5 +308,5 @@ if(is_null) {
   shap
   readr::write_csv(shap, .path_data_csv(file = 'shap'))
   
-  cat(sprintf('Successfully completed update', Sys.time()))
+  cat(sprintf('Successfully completed update at %s', Sys.time()), sep = '\n')
 }

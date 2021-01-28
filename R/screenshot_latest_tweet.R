@@ -29,10 +29,9 @@ screenshot_latest_tweet <-
     }
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     path_exists <- path %>% file.exists()
-    tweetrmd::tweet_screenshot(
+    suppressMessages(tweetrmd::tweet_screenshot(
       tweetrmd::tweet_url(user, status_id),
       file = path,
       ...
-    )
-    
+    ))
   }

@@ -65,11 +65,9 @@ retrieve_tweets <-
            path = NULL,
            f_import = readr::read_rds,
            f_export = readr::write_rds,
-           export = TRUE,
-           overwrite = FALSE) {
+           export = TRUE) {
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     path_exists <- path %>% file.exists()
-    
     tweets_are_provided <- !is.null(tweets)
     if(method == 'none') {
       if(path_exists) {
@@ -139,7 +137,7 @@ retrieve_tweets <-
         }
       }
     }
-    
+
     if(method == 'all') {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
     }

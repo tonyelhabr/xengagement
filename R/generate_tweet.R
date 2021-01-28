@@ -14,17 +14,18 @@
     tweets %>% 
     dplyr::filter(created_at >= (!!now - lubridate::minutes(n_minute_lookback)))
   n_row <- nrow(tweets_filt)
-  suffix <- sprintf('in the past %s minute%s.', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
+  suffix <- sprintf('%s minute%s', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
   if(n_row == 0L) {
-    .display_info('No tweets matching `rgx = "{rgx}"` {suffix}.')
+    suffix <- 
+    .display_info('Tweet will not be made since it is beyond {suffix}.')
     return(FALSE)
   } else {
     tweets_filt <-
       tweets_filt %>% 
-      dplyr::filter(stringr::str_detect(text, rgx))
+      dplyr::filter(stringr::str_detect(text, rgx, negate = TRUE))
     n_row <- nrow(tweets)
     if(n_row == 0L) {
-      .display_info('Already tweeted somthing with similar content {suffix}')
+      .display_info('Already tweeted somthing matching `rgx = "{rgx}"` in the past {suffix}.')
       return(FALSE)
     }
     TRUE
@@ -33,12 +34,14 @@
 
 #' @noRd
 .f_number <- function(x) {
-  format(round(x, 0), big.mark = ',')
+  # format(round(x, 0), big.mark = ',')
+  scales::number(x, accuracy = 1, big.mark = ',')
 }
 
 #' @noRd
 .f_percentile <- function(x) {
-  sprintf('%s%%', round(100 * x, 0))
+  # sprintf('%s%%', round(100 * x, 0))
+  scales::ordinal(round(100 * x, 0))
 }
 
 #' Generate a tweet
@@ -63,13 +66,13 @@ generate_tweet <-
     text <- glue::glue('
     {pred$tm_h} ({pred$xg_h}) {pred$g_h}-{pred$g_a} ({pred$xg_a}) {pred$tm_a}
     
-    xFavorites = {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
-    xRetweets = {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
+    xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
+    xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
     \U0001f517: Check my bio for more xGPhilosophy xEngagement.
     ')
     if(dry_run) {
-      .display_info('Would have made the following tweet on behalf of {user} if not for `dry_run = TRUE`: 
+      .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
                     {text}')
       return(NULL)
     }

@@ -24,6 +24,7 @@ Imports:
     rio,
     rlang (>= 0.1.2),
     rtweet,
+    scales,
     stats,
     stringr,
     tidyr,

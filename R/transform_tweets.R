@@ -128,6 +128,7 @@
 #' @param ... Not currently used
 #' @param train If `TRUE`, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.
 #' @param first_followers_count Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
+#' @export
 transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
   
   now <- lubridate::now()
