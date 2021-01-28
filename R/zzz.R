@@ -4,7 +4,11 @@
   op <- options()
   op.xengagement <- list(
     xengagement.dir_data = file.path('inst', 'extdata'),
-    xengagement.seed = 42,
+    engagement.seed = 42L,
+    # How many hours after xGPhilophy makes a tweet should it continue to be scraped and updated (in terms of favorites and retweets)?
+    xengagement.n_hour_fresh = 24L,
+    # What is the max time after xGPhilosophy makes a tweet that the bot can make a tweet in response?
+    xengagement.n_minute_lookback = 60L,
     xengagement.verbose = TRUE
   )
   toset <- !(names(op.xengagement) %in% names(op))
@@ -12,11 +16,3 @@
 
   invisible()
 }
-
-#' #' @seealso \url{https://github.com/hrbrmstr/hrbrthemes/blob/master/R/zzz.r}
-#' .onAttach <- function(libname, pkgname) {
-#'   if (.Platform$OS.type == 'windows')  { # nocov start
-#'     if (interactive()) packageStartupMessage('Registering Windows fonts with R')
-#'     extrafont::loadfonts('win', quiet = TRUE)
-#'   }
-#' }

@@ -20,6 +20,26 @@ do_getengagement_seed <- function() {
   getOption('xengagement.verbose')
 }
 
+#' @noRd
+.get_n_hour_fresh <- function() {
+  getOption('xengagement.n_hour_fresh')
+}
+
+#' @noRd
+.get_n_minute_lookback <- function() {
+  getOption('xengagement.n_minute_lookback')
+}
+
+#' @noRd
+.get_user <- function() {
+  'xGPhilosophy'
+}
+
+#' @noRd
+.get_user_bot <- function() {
+  'punditratio'
+}
+
 #' Valid items to predict for
 #' 
 #' Valid items to predict for. Either `"favorite"` or `"retweet"`.

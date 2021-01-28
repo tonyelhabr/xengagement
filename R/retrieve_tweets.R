@@ -1,4 +1,22 @@
 
+
+#' Get Twitter token
+#' 
+#' Get Twitter token
+#' @param ... Passed to `rtweet::create_token()`
+#' @details Environment variables named "TWITTER_APP|CONSUMER_API_KEY..." are expected to exist.
+#' @export
+get_twitter_token <- function(...) {
+  rtweet::create_token(
+    app =             Sys.getenv('TWITTER_APP'),
+    consumer_key =    Sys.getenv('TWITTER_CONSUMER_API_KEY'),
+    consumer_secret = Sys.getenv('TWITTER_CONSUMER_API_SECRET'),
+    access_token =    Sys.getenv('TWITTER_ACCESS_TOKEN'),
+    access_secret =   Sys.getenv('TWITTER_ACCESS_TOKEN_SECRET'),
+    ...
+  )
+}
+
 #' @noRd
 .get_valid_tweet_methods <- function() {
   c('all', 'none', 'since', 'new')
@@ -17,6 +35,9 @@
     dplyr::arrange(created_at)
 }
 
+#' Import tweets
+#' 
+#' Import tweets from xGPhilosophy
 #' @param method How to retrieve tweets.
 #' @param ... Extra parameters passed to `rtweet::get_timeline()`
 #' @param tweets If not `NULL`, then this assumed to have been retrieved by the user beforehand (e.g. by calling `retrieve_tweets(export = FALSEE)`). New tweets will not be scraped. Rather, they will simply be appended to existing tweets (assuming `append = TRUE`).
@@ -34,9 +55,9 @@
 #' @rdname retrieve_tweets
 retrieve_tweets <-
   function(method = .get_valid_tweet_methods(),
+           user = .get_user(),
            ...,
            tweets = NULL,
-           user = 'xGPhilosophy',
            n = 3200,
            dir = .get_dir_data(),
            file = sprintf('%s_timeline', user),
@@ -44,49 +65,82 @@ retrieve_tweets <-
            path = NULL,
            f_import = readr::read_rds,
            f_export = readr::write_rds,
-           append = TRUE,
            export = TRUE,
            overwrite = FALSE) {
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     path_exists <- path %>% file.exists()
     
-    if(path_exists & !overwrite & !append) {
-      .display_info('Importing from `path = "{path}"`.')
-      return(f_import(path))
+    tweets_are_provided <- !is.null(tweets)
+    if(method == 'none') {
+      if(path_exists) {
+        .display_info('Importing from `path = "{path}"`.')
+        tweets_existing <- f_import(path)
+        if(tweets_are_provided) {
+          tweets <- .distinctify_tweets(tweets, tweets_existing)
+        } else {
+          tweets <- tweets_existing
+        }
+        # return(tweets)
+      } else {
+        .display_warning('`path = "{path}"` does not exist, so `method = "none"` does not make sense. Setting `method = "all"`.')
+        method <- 'all'
+      }
+    } else if(method != 'all') {
+      if(!path_exists) {
+        method <- 'all'
+      } else {
+        .display_info('Importing from `path = "{path}"`.')
+        tweets_existing <- f_import(path)
+        # browser()
+        n_existing <- nrow(tweets_existing)
+        is_null <- is.null(tweets_existing)
+        is_nrow_0 <- (n_existing == 0L)
+        is_bad <- is_null || is_nrow_0
+        if(is_bad) {
+          if(tweets_are_provided) {
+            .display_warning('Couldn\t combine `tweets` passed in with any pre-saved tweets at `path = "{path}"`.')
+          } else if(is_null) {
+            .display_warning('`NULL` found when attempting to import. Changing `method` to "all" and deleting existing file at `path = "{path}"`..')
+            file.remove(path)
+          } else if(is_nrow_0) {
+            .display_warning('0 rows found when attempting to import. Changing `method` to "all".')
+          }
+          method <- 'all'
+        } else {
+          if(tweets_are_provided) {
+            tweets <- .distinctify_tweets(tweets, tweets_existing)
+          } else {
+            now <- lubridate::now()
+            n_hour_fresh <- .get_n_hour_fresh()
+            # browser()
+            # Refresh tweets that have been saved before but are not more than `n_hour_fresh` days old. This is what `is_fresh` marks in the predictions.
+            tweets_existing <- 
+              tweets_existing %>% 
+              dplyr::filter(created_at <= (!!now - lubridate::hours(n_hour_fresh)))
+
+            n_existing <- nrow(tweets_existing)
+            if(n_existing == 0L) {
+              method <- 'all'
+            } else {
+              latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at)
+              tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id, ...)
+              n_new <- nrow(tweets_new)
+              # n_diff <- n_existing - n_new
+              if(n_new > 0L) {
+                .display_info('Identified {n_new} new tweets/tweets to update since they were made {n_hour_fresh} hour{ifelse(n_hour_fresh > 1L, "s", "")} ago.')
+                if(method == 'since') {
+                  tweets <- .distinctify_tweets(tweets_new, tweets_existing)
+                } else if (method == 'new') {
+                  tweets <- tweets_new
+                }
+              }
+            }
+          }
+        }
+      }
     }
     
-    tweets_are_provided <- !is.null(tweets)
-    if(path_exists & append | tweets_are_provided) {
-      if(!export) {
-        .display_info('Setting `export = TRUE` since `append = TRUE` take higher priority.')
-        export <- TRUE
-      }
-      .display_info('Importing from `path = "{path}"` for appending.')
-      tweets_existing <- f_import(path)
-      n_existing <- nrow(tweets_existing)
-      
-      if(tweets_are_provided) {
-        tweets <- .distinctify_tweets(tweets, tweets_existing)
-      } else {
-        latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at)
-        tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id)
-        
-        n_new <- nrow(tweets_new)
-        if(n_new > 0) {
-          .display_info('Identified {n_new - n_existing} new tweets.')
-          if(method == 'new') {
-            tweets <- tweets_new
-          } else {
-            tweets <- .distinctify_tweets(tweets_new, tweets_existing)
-          }
-        } else {
-          if(method == 'new') {
-            .display_info('No new tweets identified.')
-            return(tweets)
-          }
-        } 
-      }
-    } else {
+    if(method == 'all') {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
     }
     
@@ -103,34 +157,3 @@ retrieve_tweets <-
     tweets
     
   }
-
-
-#' Import tweets
-#' 
-#' Import tweets from xGPhilosophy
-#' @details This is a wrapper around the non-exported `retrieve_tweets()`. `append`, `export`, and `overwrite` are determined for you based on `method`.
-#' @export
-#' @rdname retrieve_tweets
-retrieve_tweets_auto <- function(method = .get_valid_tweet_methods(), ...) {
-  .validate_tweet_method(method)
-  if(method == 'all') {
-    append <- FALSE
-    export <- TRUE
-    overwrite <- TRUE
-  } else if(method == 'new' | method == 'since') {
-    append <- TRUE
-    export <- TRUE
-    overwrite <- TRUE
-  } else if(method == 'none') {
-    append <- FALSE
-    export <- FALSE
-    overwrite <- FALSE
-  }
-  retrieve_tweets(
-    append = append,
-    export = export,
-    overwrite = overwrite,
-    method = method,
-    ...
-  )
-}

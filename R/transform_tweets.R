@@ -131,6 +131,7 @@
 transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
   
   now <- lubridate::now()
+  n_hour_fresh <- .get_n_hour_fresh()
   res_init <-
     tweets %>%
     dplyr::select(
@@ -140,7 +141,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       favorite_count,
       text
     ) %>% 
-    dplyr::mutate(is_fresh = dplyr::if_else(created_at <= (now - lubridate::days(1)), FALSE, TRUE))
+    dplyr::mutate(is_fresh = dplyr::if_else(created_at <= (!!now - lubridate::hours(n_hour_fresh)), FALSE, TRUE))
   
   latest_tweet <- tweets %>% dplyr::slice_max(created_at)
   latest_followers_count <- latest_tweet$followers_count

@@ -27,6 +27,7 @@ Imports:
     stats,
     stringr,
     tidyr,
+    tweetrmd,
     xgboost
 Encoding: UTF-8
 LazyData: true
