@@ -89,7 +89,6 @@ retrieve_tweets <-
       } else {
         .display_info('Importing from `path = "{path}"`.')
         tweets_existing <- f_import(path)
-        # browser()
         n_existing <- nrow(tweets_existing)
         is_null <- is.null(tweets_existing)
         is_nrow_0 <- (n_existing == 0L)
@@ -99,6 +98,7 @@ retrieve_tweets <-
             .display_warning('Couldn\t combine `tweets` passed in with any pre-saved tweets at `path = "{path}"`.')
           } else if(is_null) {
             .display_warning('`NULL` found when attempting to import. Changing `method` to "all" and deleting existing file at `path = "{path}"`..')
+
             file.remove(path)
           } else if(is_nrow_0) {
             .display_warning('0 rows found when attempting to import. Changing `method` to "all".')
@@ -110,12 +110,11 @@ retrieve_tweets <-
           } else {
             now <- lubridate::now()
             n_hour_fresh <- .get_n_hour_fresh()
-            # browser()
             # Refresh tweets that have been saved before but are not more than `n_hour_fresh` days old. This is what `is_fresh` marks in the predictions.
             tweets_existing <- 
               tweets_existing %>% 
               dplyr::filter(created_at <= (!!now - lubridate::hours(n_hour_fresh)))
-
+            
             n_existing <- nrow(tweets_existing)
             if(n_existing == 0L) {
               method <- 'all'
@@ -123,8 +122,9 @@ retrieve_tweets <-
               latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at)
               tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id, ...)
               n_new <- nrow(tweets_new)
-              # n_diff <- n_existing - n_new
-              if(n_new > 0L) {
+              if(n_new == 0L) {
+                tweets <- tweets_existing
+              } else if(n_new > 0L) {
                 .display_info('Identified {n_new} new tweets/tweets to update since they were made {n_hour_fresh} hour{ifelse(n_hour_fresh > 1L, "s", "")} ago.')
                 if(method == 'since') {
                   tweets <- .distinctify_tweets(tweets_new, tweets_existing)
@@ -137,7 +137,7 @@ retrieve_tweets <-
         }
       }
     }
-
+    
     if(method == 'all') {
       tweets <- rtweet::get_timeline(user = user, n = n, ...)
     }
