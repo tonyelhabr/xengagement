@@ -144,7 +144,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
     ) %>% 
     dplyr::mutate(is_fresh = dplyr::if_else(created_at <= (!!now - lubridate::hours(n_hour_fresh)), FALSE, TRUE))
   
-  latest_tweet <- tweets %>% dplyr::slice_max(created_at)
+  latest_tweet <- tweets %>% dplyr::slice_max(created_at, with_ties = FALSE)
   latest_followers_count <- latest_tweet$followers_count
   latest_date <- latest_tweet$created_at %>% lubridate::date()
   # if(train) {

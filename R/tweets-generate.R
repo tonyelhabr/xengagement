@@ -37,7 +37,21 @@
   n_row <- nrow(in_reply_to_tweets_filt)
   suffix <- sprintf('%s minute%s', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
   if(n_row == 0L) {
-    .display_info('Tweet will not be made (for `rgx = "{rgx}"`) since the corresponding tweet is beyond {suffix}.')
+    suffix2 <- ''
+    n_row <- nrow(in_reply_to_tweets_filt)
+    in_reply_to_tweets_filt <-
+      in_reply_to_tweets %>% 
+      dplyr::filter(text %>% stringr::str_detect(rgx))
+    if(n_row == 0L) {
+      in_reply_to_tweets_filt <-
+        in_reply_to_tweets_filt %>% 
+        dplyr::slice_max(created_at, with_ties = FALSE)
+      n_row <- nrow(in_reply_to_tweets_filt)
+      if(n_row == 1L) {
+        suffix2 <- glue::glue(' (Tweet with `text = "{in_reply_to_tweets_filt$text}"` made at {in_reply_to_tweets_filt$created_at}.)')
+      }
+    }
+    .display_info('Tweet will not be made (for `rgx = "{rgx}"`) since the corresponding tweet is beyond {suffix}{suffix2}.')
     return(FALSE)
   }
 

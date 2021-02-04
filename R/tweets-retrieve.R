@@ -119,13 +119,13 @@ retrieve_tweets <-
             if(n_existing == 0L) {
               method <- 'all'
             } else {
-              latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at)
+              latest_tweet <- tweets_existing %>% dplyr::slice_max(created_at, with_ties = FALSE)
               tweets_new <- rtweet::get_timeline(user = user, n = n, since_id = latest_tweet$status_id, ...)
               n_new <- nrow(tweets_new)
               if(n_new == 0L) {
                 tweets <- tweets_existing
               } else if(n_new > 0L) {
-                .display_info('Identified {n_new} new tweets/tweets to update since they were made {n_hour_fresh} hour{ifelse(n_hour_fresh > 1L, "s", "")} ago.')
+                .display_info('Identified {n_new} new tweets/tweets to update since they were made less than {n_hour_fresh} hour{ifelse(n_hour_fresh > 1L, "s", "")} ago.')
                 if(method == 'since') {
                   tweets <- .distinctify_tweets(tweets_new, tweets_existing)
                 } else if (method == 'new') {

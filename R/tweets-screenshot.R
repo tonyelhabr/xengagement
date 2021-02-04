@@ -24,7 +24,7 @@ screenshot_latest_tweet <-
         .display_info('It\'s recommended to provide tweets explicitly. Trying to import anyways...')
         tweets <- retrieve_tweets(user = user, export = FALSE, method = 'none', ...)
       }
-      latest_tweet <- tweets %>% dplyr::slice_max(created_at)
+      latest_tweet <- tweets %>% dplyr::slice_max(created_at, with_ties = FALSE)
       status_id <- latest_tweet$status_id
     }
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
