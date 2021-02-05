@@ -164,9 +164,8 @@ do_update <- function() {
   preds_init <-
     preds_init %>% 
     dplyr::mutate(
-      dplyr::across(
-        text,
-        ~ sprintf(
+      text_lab =
+        sprintf(
           '%s: %s (%.2f) %d-%d (%.2f) %s',
           lubridate::date(created_at),
           # lubridate::hour(created_at),
@@ -177,18 +176,8 @@ do_update <- function() {
           g_a,
           xg_a,
           tm_a
-        )
-      ),
-      lab_hover = 
-        sprintf(
-          '%s (%.2f) %d-%d (%.2f) %s',
-          tm_h,
-          xg_h,
-          g_h,
-          g_a,
-          xg_a,
-          tm_a
-        )
+        ),
+      lab_hover = stringr::str_remove(text_lab, '^.*[:]\\s')
     ) %>% 
     dplyr::arrange(idx)
   
@@ -266,7 +255,7 @@ do_update <- function() {
         tweets = tweets_bot,
         in_reply_to_tweets = tweets,
         in_reply_to_status_id = ..2,
-        dry_run = TRUE
+        dry_run = FALSE
       )
     ))
 

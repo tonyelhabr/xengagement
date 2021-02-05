@@ -1,6 +1,6 @@
 
 #' @noRd
-.check_before_tweeting <- function(rgx, tweets = NULL, in_reply_to_tweets = NULL, ..., user = .get_user_bot(), in_reply_to_user = .get_user()) {
+.check_before_tweeting <- function(text, tweets = NULL, in_reply_to_tweets = NULL, ..., user = .get_user_bot(), in_reply_to_user = .get_user()) {
   
   tweets_are_provided <- !is.null(tweets)
   tweets_are_provided <- !is.null(in_reply_to_tweets)
@@ -37,21 +37,16 @@
   n_row <- nrow(in_reply_to_tweets_filt)
   suffix <- sprintf('%s minute%s', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
   if(n_row == 0L) {
-    suffix2 <- ''
-    n_row <- nrow(in_reply_to_tweets_filt)
     in_reply_to_tweets_filt <-
       in_reply_to_tweets %>% 
-      dplyr::filter(text %>% stringr::str_detect(rgx))
-    if(n_row == 0L) {
-      in_reply_to_tweets_filt <-
-        in_reply_to_tweets_filt %>% 
-        dplyr::slice_max(created_at, with_ties = FALSE)
-      n_row <- nrow(in_reply_to_tweets_filt)
-      if(n_row == 1L) {
-        suffix2 <- glue::glue(' (Tweet with `text = "{in_reply_to_tweets_filt$text}"` made at {in_reply_to_tweets_filt$created_at}.)')
-      }
+      dplyr::filter(text == !!text)
+    suffix2 <- ''
+    if(nrow(in_reply_to_tweets_filt) == 1L) {
+      created_at <- in_reply_to_tweets_filt$created_at
+      diff <- {now - created_at} %>% as.numeric('hours') %>% round(1)
+      suffix2 <- glue::glue('. (It was made {diff} hours ago.)')
     }
-    .display_info('Tweet will not be made (for `rgx = "{rgx}"`) since the corresponding tweet is beyond {suffix}{suffix2}.')
+    .display_info('Tweet will not be made (for `text = "{text}"`) since the corresponding tweet was made beyond {suffix} ago{suffix2}.')
     return(FALSE)
   }
 
@@ -66,13 +61,13 @@
   # }
   tweets_filt <- tweets
   
-  # Check that the tweet actually matches the regex. (I don't know when this would fail, but let's test it anyways.)
+  # Check that the tweet actually matches the `text`. (I don't know when this would fail, but let's test it anyways.)
   in_reply_to_tweets_filt <-
     in_reply_to_tweets_filt %>% 
-    dplyr::filter(stringr::str_detect(text, rgx))
+    dplyr::filter(text == !!text)
   n_row <- nrow(in_reply_to_tweets_filt)
   if(n_row == 0L) {
-    .display_info('No tweets from {in_reply_to_user} matching `rgx = "{rgx}"` in the past {suffix}.')
+    .display_info('No tweets from {in_reply_to_user} matching `text = "{text}"` in the past {suffix}.')
     return(FALSE)
   }
   
@@ -80,10 +75,10 @@
   # I think this will fail if the game was like from a year ago and the bot already made a tweet about it. Need to eventually make an update for that case.
   tweets_filt <-
     tweets_filt %>% 
-    dplyr::filter(stringr::str_detect(text, rgx, negate = TRUE))
+    dplyr::filter(text == !!text)
   n_row <- nrow(tweets_filt)
-  if(n_row == 0L) {
-    .display_info('Already tweeted something matching `rgx = "{rgx}"` in the past {suffix}.')
+  if(n_row >= 0L) {
+    .display_info('Already tweeted something matching `text = "{text}"` in the past {suffix}.')
     return(FALSE)
   }
   
@@ -121,7 +116,7 @@ generate_tweet <-
     rgx <- sprintf('%s.*%s.*', pred$tm_h, pred$tm_a)
     should_tweet <-
       .check_before_tweeting(
-        rgx = rgx,
+        text = pred$text,
         tweets = tweets,
         in_reply_to_tweets = in_reply_to_tweets
       )
@@ -132,7 +127,7 @@ generate_tweet <-
     }
     
     text <- glue::glue('
-    {pred$tm_h} ({pred$xg_h}) {pred$g_h}-{pred$g_a} ({pred$xg_a}) {pred$tm_a}
+    {pred$lab_hover}
     
     xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)

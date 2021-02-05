@@ -1,14 +1,13 @@
 
-
 token <- get_twitter_token()
 
-train <- FALSE
+train <- TRUE
 method <- ifelse(train, 'all', 'since')
 dir_data <- get_dir_data()
 valid_stems <- get_valid_stems()
 
 .f_transform <- function() {
-  tweets <- retrieve_tweets(method = train, token = toekn)
+  tweets <- retrieve_tweets(method = method, token = token)
   tweets_transformed <- tweets %>% transform_tweets(train = train)
   .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
   tweets_transformed
