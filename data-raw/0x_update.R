@@ -95,7 +95,7 @@ do_update <- function() {
     )
   
   .f_transform <- function() {
-
+    
     tweets_transformed <- tweets %>% xengagement::transform_tweets(train = FALSE)
     .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} after transformation.')
     tweets_transformed
@@ -227,6 +227,22 @@ do_update <- function() {
     dplyr::select(-dplyr::matches('_scaled$')) %>% 
     dplyr::arrange(total_diff_rnk)
   
+  
+  preds_long <-
+    preds %>%
+    dplyr::select(
+      status_id,
+      favorite_count,
+      favorite_pred,
+      retweet_count,
+      retweet_pred
+    ) %>%
+    tidyr::pivot_longer(
+      -status_id,
+      names_to = c('stem', 'what'),
+      names_pattern = '(favorite|retweet)_(count|pred)') %>%
+    tidyr::pivot_wider(names_from = 'what', values_from = 'value')
+  
   # UPDATE: Fixed, but not currently using the outputs, so don't run for now.
   if(FALSE) {
     # This is a valid way as well. It just isn't as clear what's going on.
@@ -255,10 +271,12 @@ do_update <- function() {
         tweets = tweets_bot,
         in_reply_to_tweets = tweets,
         in_reply_to_status_id = ..2,
+        preds_long = preds_long,
+        dir = dir_figs,
         dry_run = FALSE
       )
     ))
-
+  
   cols_x <- 
     dplyr::tibble(
       lab = c(cols_lst$cols_x_names, 'Baseline'),
@@ -324,7 +342,7 @@ do_update <- function() {
     dplyr::left_join(preds %>% dplyr::select(idx, text), by = 'idx') %>% 
     dplyr::filter(feature != 'baseline') %>% 
     dplyr::arrange(idx, feature)
-  
+
   .export_csv(preds)
   .export_csv(shap)
   

@@ -28,7 +28,8 @@ Imports:
     stats,
     stringr,
     tidyr,
-    xgboost
+    xgboost,
+    ggplot2
 Remotes: 
     gadenbuie/tweetrmd
 Encoding: UTF-8

@@ -101,19 +101,23 @@
 #' 
 #' Generate a tweet
 #' @param pred Data frame with `{stem}_pred`, `{stem}_pred_prnk`, `(tm|g|xg)_(h|a)`, and `created_at` columns.
-#' @param ... Extra parameters passed to `rtweet::post_tweet()`
-#' @param user for whom to retrieve tweets for. (pundit_ratio by default.)
+#' @param tweets Tweets of the user for whom a tweets will be made in reply to. Needed for identifying the tweet to reply to.
+#' @param in_reply_to_tweets Tweets of the user who will be making a reply. Needed to check that a tweet hasn't already been made.
+#' @param preds_long Tidy predictions with at least five columns `status_id`, `stem` (either favorite or retweet), `pred`, and `count`. This will be used to generate a plot to accompany the tweet.
+#' @param ... Extra parameters first passed to .`save_plot()`, then passed to `rtweet::post_tweet()`
+#' @param user Who is making the reply. (pundit_ratio by default.) This is only used for printing, and possibly looking up `in_reply_to_tweets` if it's not provided.
 #' @param dry_run Whether or not to actually make a tweet.
 #' @export
-#' @rdname retrieve_tweets
+#' @rdname generate_tweet
 generate_tweet <-
   function(pred,
            tweets,
            in_reply_to_tweets,
+           preds_long,
            ...,
            user = .get_user_bot(),
            dry_run =  TRUE) {
-    rgx <- sprintf('%s.*%s.*', pred$tm_h, pred$tm_a)
+    # TODO: Just use `status_id` here?
     should_tweet <-
       .check_before_tweeting(
         text = pred$text,
@@ -139,8 +143,11 @@ generate_tweet <-
                     {text}')
       return(NULL)
     }
+    path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
+    on.exit(file.remove(path_png), add = FALSE)
     rtweet::post_tweet(
       status = text,
+      media = path_png,
       ...
     )
   }
