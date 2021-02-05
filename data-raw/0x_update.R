@@ -5,6 +5,7 @@ library(xengagement)
 
 options(xengagement.dir_data = 'inst/extdata')
 dir_figs <- 'inst/extdata'
+
 token <- xengagement::get_twitter_token()
 dir_data <- xengagement::get_dir_data()
 valid_stems <- xengagement::get_valid_stems()
@@ -240,7 +241,8 @@ do_update <- function() {
     tidyr::pivot_longer(
       -status_id,
       names_to = c('stem', 'what'),
-      names_pattern = '(favorite|retweet)_(count|pred)') %>%
+      names_pattern = '(favorite|retweet)_(count|pred)'
+    ) %>%
     tidyr::pivot_wider(names_from = 'what', values_from = 'value')
   
   # UPDATE: Fixed, but not currently using the outputs, so don't run for now.
