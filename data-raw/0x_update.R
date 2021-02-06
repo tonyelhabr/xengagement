@@ -165,7 +165,7 @@ do_update <- function() {
   preds_init <-
     preds_init %>% 
     dplyr::mutate(
-      text_lab =
+      lab_text =
         sprintf(
           '%s: %s (%.2f) %d-%d (%.2f) %s',
           lubridate::date(created_at),
@@ -178,7 +178,7 @@ do_update <- function() {
           xg_a,
           tm_a
         ),
-      lab_hover = stringr::str_remove(text_lab, '^.*[:]\\s')
+      lab_hover = stringr::str_remove(lab_text, '^.*[:]\\s')
     ) %>% 
     dplyr::arrange(idx)
   
@@ -343,7 +343,7 @@ do_update <- function() {
     dplyr::left_join(preds %>% dplyr::select(idx, lab_text), by = 'idx') %>% 
     dplyr::filter(feature != 'baseline') %>% 
     dplyr::arrange(idx, feature)
-
+  
   .export_csv(preds)
   .export_csv(shap)
   
@@ -354,4 +354,3 @@ do_update <- function() {
 # main ----
 print(paths_data_info[, c('mtime'), drop = FALSE])
 do_update()
-

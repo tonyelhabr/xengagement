@@ -38,14 +38,14 @@
   if(n_row == 0L) {
     in_reply_to_tweets_filt <-
       in_reply_to_tweets %>% 
-      dplyr::filter(text == !!text)
+      dplyr::filter(status_id == !!status_id)
     suffix2 <- ''
-    if(nrow(in_reply_to_tweets_filt) == 1L) {
+    if(!is.null(in_reply_to_tweets_filt) & nrow(in_reply_to_tweets_filt) == 1L) {
       created_at <- in_reply_to_tweets_filt$created_at
       diff <- {now - created_at} %>% as.numeric('hours') %>% round(1)
       suffix2 <- glue::glue('. (It was made {diff} hours ago.)')
     }
-    .display_info('Tweet will not be made (for `text = "{text}"`) since the corresponding tweet was made beyond {suffix} ago{suffix2}.')
+    .display_info('Tweet will not be made (for `status_id = "{status_id}"`) since the corresponding tweet was made beyond {suffix} ago{suffix2}.')
     return(FALSE)
   }
 
