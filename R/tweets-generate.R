@@ -1,31 +1,30 @@
 
 #' @noRd
-.check_before_tweeting <- function(text, tweets = NULL, in_reply_to_tweets = NULL, ..., user = .get_user_bot(), in_reply_to_user = .get_user()) {
+.check_before_tweeting <- function(status_id, tweets = NULL, in_reply_to_tweets = NULL, ..., user = .get_user_bot(), in_reply_to_user = .get_user()) {
   
-  tweets_are_provided <- !is.null(tweets)
-  tweets_are_provided <- !is.null(in_reply_to_tweets)
-  if(!tweets_are_provided) {
-    .display_info('It\'s recommended to provide `tweets` explicitly. Trying to import anyways...')
-    tweets <- 
-      retrieve_tweets(
-        user = user,
-        export = FALSE, 
-        method = 'none', 
-        ...
-      )
-  }
-  
-  tweets_are_provided <- !is.null(in_reply_to_tweets)
-  if(!tweets_are_provided) {
-    .display_info('It\'s recommended to provide `in_reply_to_tweets` explicitly. Trying to import anyways...')
-    in_reply_to_tweets <- 
-      retrieve_tweets(
-        user = in_reply_to_user,
-        export = FALSE, 
-        method = 'none', 
-        ...
-      )
-  }
+  # tweets_are_provided <- !is.null(tweets)
+  # if(!tweets_are_provided) {
+  #   .display_info('It\'s recommended to provide `tweets` explicitly. Trying to import anyways...')
+  #   tweets <- 
+  #     retrieve_tweets(
+  #       user = user,
+  #       export = FALSE, 
+  #       method = 'none', 
+  #       ...
+  #     )
+  # }
+  # 
+  # tweets_are_provided <- !is.null(in_reply_to_tweets)
+  # if(!tweets_are_provided) {
+  #   .display_info('It\'s recommended to provide `in_reply_to_tweets` explicitly. Trying to import anyways...')
+  #   in_reply_to_tweets <- 
+  #     retrieve_tweets(
+  #       user = in_reply_to_user,
+  #       export = FALSE, 
+  #       method = 'none', 
+  #       ...
+  #     )
+  # }
   
   now <- lubridate::now()
   n_minute_lookback <- .get_n_minute_lookback()
@@ -64,21 +63,23 @@
   # Check that the tweet actually matches the `text`. (I don't know when this would fail, but let's test it anyways.)
   in_reply_to_tweets_filt <-
     in_reply_to_tweets_filt %>% 
-    dplyr::filter(text == !!text)
+    dplyr::filter(status_id == !!status_id)
+  is_rull <- is.null(in_reply_to_tweets_filt)
   n_row <- nrow(in_reply_to_tweets_filt)
-  if(n_row == 0L) {
-    .display_info('No tweets from {in_reply_to_user} matching `text = "{text}"` in the past {suffix}.')
+  suffix <- glue::glue('matching `status_id = "{status_id}"` in the past {suffix}.')
+  if(is_null | n_row == 0L) {
+    .display_info('No tweets from `in_reply_to_user = "{in_reply_to_user}"` {suffix}')
     return(FALSE)
   }
   
   # Check that the bot hasn't made a reply tweet already.
-  # I think this will fail if the game was like from a year ago and the bot already made a tweet about it. Need to eventually make an update for that case.
   tweets_filt <-
     tweets_filt %>% 
-    dplyr::filter(text == !!text)
+    dplyr::filter(reply_to_status_id == !!status_id)
+  is_null <- is.null(tweets_filt)
   n_row <- nrow(tweets_filt)
-  if(n_row >= 0L) {
-    .display_info('Already tweeted something matching `text = "{text}"` in the past {suffix}.')
+  if(!is_null & n_row > 0L) {
+    .display_info('`user = "{user}"` already tweeted something {suffix}')
     return(FALSE)
   }
   
@@ -101,11 +102,11 @@
 #' 
 #' Generate a tweet
 #' @param pred Data frame with `{stem}_pred`, `{stem}_pred_prnk`, `(tm|g|xg)_(h|a)`, and `created_at` columns.
-#' @param tweets Tweets of the user for whom a tweets will be made in reply to. Needed for identifying the tweet to reply to.
-#' @param in_reply_to_tweets Tweets of the user who will be making a reply. Needed to check that a tweet hasn't already been made.
+#' @param in_reply_to_tweets Tweets of the user for whom a tweets will be made in reply to (xGPhilosophy by default). Needed for identifying the tweet to reply to.
+#' @param tweets Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.
 #' @param preds_long Tidy predictions with at least five columns `status_id`, `stem` (either favorite or retweet), `pred`, and `count`. This will be used to generate a plot to accompany the tweet.
-#' @param ... Extra parameters first passed to .`save_plot()`, then passed to `rtweet::post_tweet()`
-#' @param user Who is making the reply. (pundit_ratio by default.) This is only used for printing, and possibly looking up `in_reply_to_tweets` if it's not provided.
+#' @param ... Extra parameters passed to .`save_plot()`.
+#' @param user Who is making the reply. (pundit_ratio by default.)
 #' @param dry_run Whether or not to actually make a tweet.
 #' @export
 #' @rdname generate_tweet
@@ -120,7 +121,8 @@ generate_tweet <-
     # TODO: Just use `status_id` here?
     should_tweet <-
       .check_before_tweeting(
-        text = pred$text,
+        # text = pred$text,
+        status_id = pred$status_id,
         tweets = tweets,
         in_reply_to_tweets = in_reply_to_tweets
       )
@@ -136,7 +138,7 @@ generate_tweet <-
     xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
-    \U0001f517: Check my bio for more xGPhilosophy xEngagement.
+    \U0001f517: Check my bio for more @xGPhilosophy xEngagement.
     ')
     if(dry_run) {
       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
@@ -145,9 +147,10 @@ generate_tweet <-
     }
     path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
     on.exit(file.remove(path_png), add = FALSE)
+
     rtweet::post_tweet(
       status = text,
-      media = path_png,
-      ...
+      in_reply_to_status_id = pred$status_id,
+      media = path_png
     )
   }

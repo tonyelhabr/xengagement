@@ -228,7 +228,6 @@ do_update <- function() {
     dplyr::select(-dplyr::matches('_scaled$')) %>% 
     dplyr::arrange(total_diff_rnk)
   
-  
   preds_long <-
     preds %>%
     dplyr::select(
@@ -265,14 +264,14 @@ do_update <- function() {
   res_generate <-
     preds %>%
     dplyr::semi_join(tweets_new %>% dplyr::select(status_id), by = 'status_id') %>% 
-    tidyr::nest(data = -c(idx, status_id)) %>%
-    dplyr::mutate(res = purrr::map2(
-      data, status_id,
+    tidyr::nest(data = -c(idx)) %>%
+    dplyr::mutate(res = purrr::map(
+      data,
       ~ xengagement::generate_tweet(
-        pred = ..1,
+        pred = .x,
         tweets = tweets_bot,
         in_reply_to_tweets = tweets,
-        in_reply_to_status_id = ..2,
+        # in_reply_to_status_id = ..2,
         preds_long = preds_long,
         dir = dir_figs,
         dry_run = FALSE
