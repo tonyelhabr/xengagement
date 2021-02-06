@@ -64,7 +64,7 @@
   in_reply_to_tweets_filt <-
     in_reply_to_tweets_filt %>% 
     dplyr::filter(status_id == !!status_id)
-  is_rull <- is.null(in_reply_to_tweets_filt)
+  is_null <- is.null(in_reply_to_tweets_filt)
   n_row <- nrow(in_reply_to_tweets_filt)
   suffix <- glue::glue('matching `status_id = "{status_id}"` in the past {suffix}.')
   if(is_null | n_row == 0L) {
