@@ -341,7 +341,7 @@ do_update <- function() {
       values_fill = list(pred = 0, count = 0, sign = 'neutral', shap_value = 0)
     ) %>% 
     # dplyr::mutate(dplyr::across(where(is.numeric), ~dplyr::coalesce(.x, 0))) %>% 
-    dplyr::left_join(preds %>% dplyr::select(idx, text), by = 'idx') %>% 
+    dplyr::left_join(preds %>% dplyr::select(idx, lab_text), by = 'idx') %>% 
     dplyr::filter(feature != 'baseline') %>% 
     dplyr::arrange(idx, feature)
 
