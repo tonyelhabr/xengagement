@@ -41,7 +41,7 @@
       filename = path,
       width = width,
       height = height,
-      type = 'cairo',
+      # type = 'cairo',
       ...
     )
   }
