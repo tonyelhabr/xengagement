@@ -27,7 +27,7 @@
       sprintf('estimated_followers_count_%s', suffix) %>% sym()
     
     if (!train & retrieve) {
-
+      
       tms_distinct <- data %>% .distinct12_at(col = 'tm', suffix = .get_valid_suffixes())
       users <-
         tm_accounts_mapping %>% 
@@ -53,7 +53,7 @@
     # suppressMessages(
     res <-
       data %>%
-      dplyr::left_join(
+      dplyr::inner_join(
         tm_accounts_mapping %>% dplyr::rename_all( ~ sprintf('%s_%s', .x, suffix)),
         by = tm_col
       ) %>%
@@ -61,7 +61,7 @@
         !!col_diff_sym := !!latest_date - lubridate::date(!!col_created_at_sym),
         !!col_diff_latest_sym := !!latest_date - created_date,
         dplyr::across(dplyr::matches(col_diff), as.numeric),
-        !!col_res_sym := ((!!col_diff_sym-!!col_diff_latest_sym) / !!col_diff_sym) ^0.5 * !!col_followers_count_sym
+        !!col_res_sym := ((!!col_diff_sym-!!col_diff_latest_sym) / !!col_diff_sym) ^1 * !!col_followers_count_sym
       ) %>%
       dplyr::select(
         -dplyr::matches(col_diff),
@@ -107,6 +107,36 @@
 }
 
 #' @noRd
+.retrieve_538_matches <- # memoise::memoise({
+  function() {
+  matches <- 
+    readr::read_csv(
+      'https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv',
+      col_types = readr::cols(
+        .default = readr::col_double(),
+        date = readr::col_date(format = ''),
+        league = readr::col_character(),
+        team1 = readr::col_character(),
+        team2 = readr::col_character()
+      )
+    ) %>% 
+    dplyr::filter(league == 'Barclays Premier League' & season >= 2019 & !is.na(score1)) %>% 
+    dplyr::select(-c(league, league_id)) %>% 
+    dplyr::rename(date_538 = date, tm_538_h = team1, tm_538_a = team2, probtie_538 = probtie) %>% 
+    dplyr::rename_with(~stringr::str_replace(.x, '1$', '_538_h'), dplyr::matches('1$')) %>% 
+    dplyr::rename_with(~stringr::str_replace(.x, '2$', '_538_a'), dplyr::matches('2$'))
+  matches
+}
+# })
+
+#' @noRd
+.add_538_cols <- function(data, matches = .retrieve_538_matches()) {
+  # matches = .retrieve_538_matches()
+  data %>% 
+    dplyr::inner_join(matches, by = c('season', 'tm_538_h', 'tm_538_a'))
+}
+
+#' @noRd
 .fourier_term <- function(x, period, f = sin, order) {
   f(2 * order * pi * x / period)
 }
@@ -147,22 +177,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   latest_tweet <- tweets %>% dplyr::slice_max(created_at, with_ties = FALSE)
   latest_followers_count <- latest_tweet$followers_count
   latest_date <- latest_tweet$created_at %>% lubridate::date()
-  # if(train) {
-  #   
-  #   followers_count_diff <- latest_followers_count - first_followers_count
-  #   res_init <-
-  #     res_init %>% 
-  #     # This is a linear estimate of follower count at the tweet time.
-  #     dplyr::mutate(
-  #       idx = dplyr::row_number(created_at),
-  #       estimated_followers_count = !!first_followers_count + round((idx / max(idx)) * !!followers_count_diff, 0)
-  #     ) %>% 
-  #     dplyr::select(-idx)
-  # } else {
-  #   res_init <-
-  #     res_init %>% 
-  #     dplyr::mutate(estimated_followers_count = !!latest_followers_count)
-  # }
+  
   followers_count_diff <- latest_followers_count - first_followers_count
   res_init <-
     res_init %>% 
@@ -174,7 +189,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
     dplyr::select(-idx)
   
   suppressWarnings(
-    res <-
+    res_proc <-
       res_init %>% 
       # Drop half time scores, and just anything with commas or new lines since those aren't score line tweets.
       dplyr::filter(text %>% stringr::str_detect('^HT|\\,|\\n', negate = TRUE)) %>%
@@ -212,12 +227,11 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         ),
         dplyr::across(
           text, 
-          # text with "FT: " at the beginning
+          # text with 'FT: ' at the beginning
           ~stringr::str_remove(.x, '^FT[:]\\s+') %>% 
             # text that ends with a twitter url... this isn't completely robust, but it should be fine
             stringr::str_remove('\\s+https?[:][\\/][\\/]t[.]co.*$')
         ),
-
         # Warnings here.
         dplyr::across(
           text,
@@ -235,32 +249,92 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       # select(-text) %>% 
       # Drop non-score line tweets that weren't caught by previous filter.
       tidyr::drop_na(xg_h, g_h, g_a, xg_a) %>%
+      dplyr::mutate(
+        season = dplyr::if_else(created_date >= lubridate::ymd('20200912'), 2020L, 2019L)
+      ) %>% 
       # There's a Biden Trump tweet that won't get past this filter. This filter helps overcome other weird tweets.
-      dplyr::filter(g_h <= 10 & g_a <= 10 & xg_h <= 10 & xg_a <= 10)
+      dplyr::filter(g_h <= 10 & g_a <= 10 & xg_h <= 10 & xg_a <= 10) %>% 
+      .fix_tm_cols() %>% 
+      # Update since non-EPL teams are now being tweeted on another account... Use inner_join instead of left_join
+      .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
+      .add_538_cols() %>% 
+      dplyr::mutate(
+        # is_gt_h = dplyr::if_else(xg_h - g_h > 0, 1L, 0L),
+        # is_gt_a = dplyr::if_else(xg_a - g_a > 0, 1L, 0L),
+        xgd_h2a = xg_h - xg_a,
+        gd_h2a = g_h - g_a,
+        d_h2a = xgd_h2a - gd_h2a,
+        d_agree_h2a = 
+          dplyr::case_when(
+            xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
+            xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
+            TRUE ~ 0L
+          )
+      ) %>% 
+      # Don't keep games where neither side's followers can be estimated.
+      # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
+      dplyr::select(-created_date) %>% 
+      dplyr::arrange(created_at) %>% 
+      dplyr::mutate(
+        idx = dplyr::row_number(created_at)
+      ) %>% 
+      dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
   )
-
-  res <-
-    res %>% 
-    .fix_tm_cols() %>% 
-    .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
-    # Don't keep games where neither side's followers can be estimated.
-    # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
-    dplyr::select(-created_date) %>% 
-    dplyr::arrange(created_at) %>% 
+  
+  # standings <- .retrieve_understatr()
+  # standings <- standings %>% dplyr::select(-c(lg, g)) %>% dplyr::rename(tm_understat = tm)
+  # res
+  # res %>% dplyr::inner_join(standings %>% dplyr::rename_all(~sprintf('%s_h', .x)))
+  
+  .f_distinct <- function(suffix = .get_valid_suffixes()) {
+    res_proc %>% 
+      dplyr::distinct(
+        tm = !!sym(sprintf('tm_%s', suffix)), 
+        created_at, 
+        favorite_count, 
+        retweet_count
+      )
+  }
+  
+  res_grps <- dplyr::bind_rows(.f_distinct('h'), .f_distinct('a'))
+  
+  res_lag <-
+    res_grps %>% 
+    dplyr::group_by(tm) %>% 
     dplyr::mutate(
-      idx = dplyr::row_number(created_at)
+      dplyr::across(
+        dplyr::matches('^(favorite|retweet)_count$'),
+        list(
+          lag1 = ~dplyr::lag(.x, 1L)
+        )
+      )
     ) %>% 
-    dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
+    dplyr::ungroup()
+  res_lag
+  
+  .f_join_rename <- function(data, suffix = .get_valid_suffixes()) {
+    data %>% 
+      dplyr::left_join(
+        res_lag %>% 
+          dplyr::rename_with(
+            ~sprintf('%s_%s', .x, suffix),
+            -c(created_at)
+          ),
+        by = c('created_at', sprintf('tm_%s', suffix))
+      )
+  }
+  
+  res <-
+    res_proc %>% 
+    .f_join_rename('h') %>% 
+    .f_join_rename('a')
+
   if(train) {
+    # Getting weird error without .data$idx
     res <-
       res %>% 
       dplyr::mutate(
-        wt = idx / max(idx),
-        # # Do these sequentially.
-        dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_a), .x * 0.5, .x)),
-        dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_h), .x * 0.5, .x)),
-        # dplyr::across(wt, ~dplyr::if_else(is.na(estimated_followers_count_a) | is.na(estimated_followers_count_h), .x * 0.5, .x))
-        dplyr::across(wt, ~.x^0.5)
+        wt = (.data$idx / max(.data$idx))^2
       ) %>% 
       dplyr::relocate(idx, wt)
   }

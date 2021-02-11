@@ -7,19 +7,19 @@
 }
 
 #' @noRd
-.theme <- function(...) {
+.theme <- function(base_size = 14, ...) {
   ggplot2::theme_minimal() +
     ggplot2::theme(
       ...,
-      title = ggplot2::element_text(size = 14, color = 'gray20'),
-      plot.title = ggplot2::element_text(face = 'bold', size = 14, color = 'gray20'),
-      axis.text = ggplot2::element_text(size = 14),
-      axis.title = ggplot2::element_text(size = 14, face = 'bold', hjust = 0.99),
+      title = ggplot2::element_text(size = base_size, color = 'gray20'),
+      plot.title = ggplot2::element_text(face = 'bold', size = base_size, color = 'gray20'),
+      axis.text = ggplot2::element_text(size = base_size),
+      axis.title = ggplot2::element_text(size = base_size, face = 'bold', hjust = 0.99),
       axis.line = ggplot2::element_blank(),
       panel.grid.major = ggplot2::element_line(color = 'gray80'),
       panel.grid.minor.x = ggplot2::element_blank(),
       panel.grid.minor.y = ggplot2::element_blank(),
-      strip.text = ggplot2::element_text(size = 14, color = 'gray20', hjust = 0),
+      strip.text = ggplot2::element_text(size = base_size, color = 'gray20', hjust = 0),
       plot.caption = ggplot2::element_text(size = 9, color = 'gray20', hjust = 0),
       plot.margin = ggplot2::margin(10, 10, 10, 10)
     )
@@ -53,7 +53,7 @@
            status_id,
            ...,
            dir = .get_dir_data(),
-           file = sprintf('%s', status_id),
+           file = sprintf('%s_pred', status_id),
            ext = 'png',
            path = NULL,
            # f_import = readr::read_rds,
@@ -62,9 +62,6 @@
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     path_exists <- path %>% file.exists()
     
-    preds_long <-
-      preds_long %>%
-      dplyr::mutate(across(stem, ~ sprintf('%ss', .toupper1(.x))))
     preds_long_filt <-
       preds_long %>% 
       dplyr::filter(status_id == !!status_id)
@@ -98,4 +95,28 @@
       )
     f_export(viz, path)
     path
+  }
+
+.plot_shap <- 
+  function(preds_long, 
+           status_id,
+           ...,
+           dir = .get_dir_data(),
+           file = sprintf('%s_shap', status_id),
+           ext = 'png',
+           path = NULL,
+           # f_import = readr::read_rds,
+           f_export = .save_plot,
+           export = TRUE) {
+    path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
+    path_exists <- path %>% file.exists()
+    
+    shap_filt <-
+      shap %>% 
+      dplyr::filter(status_id == !!status_id)
+    n_row <- nrow(shap_filt)
+    if(n_row == 0L) {
+      .display_error('Filtered data should have >0 rows.')
+    }
+    
   }

@@ -1,5 +1,6 @@
 
 #' @noRd
+#' @export
 .generate_path <- function(path = NULL, dir, file, ext) {
   if(!is.null(path)) {
     return(path)
@@ -8,6 +9,7 @@
 }
 
 #' @noRd
+#' @export
 .path_x <- function(dir, file = tempfile(), ext = NULL) {
   if(!is.null(ext)) {
     ext <- sprintf('.%s', ext)
@@ -18,6 +20,7 @@
 }
 
 #' @noRd
+#' @export
 .path_data <- function(dir = get_dir_data(), ...) {
   .path_x(dir = dir, ...)
 }

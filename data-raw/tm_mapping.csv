@@ -1,0 +1,44 @@
+﻿lg,tm,tm_understat,tm_538,user_id,color_pri,color_sec
+epl,Arsenal,Arsenal,Arsenal,34613288,#d80919,#063672
+epl,Aston Villa,Aston Villa,Aston Villa,27489253,#95bfe5,#670e36
+epl,Bournemouth,Bournemouth,AFC Bournemouth,20880206,#d41e2a,#000
+epl,Brighton,Brighton,Brighton and Hove Albion,57606154,#0a56a3,#F8BC1B
+epl,Burnley,Burnley,Burnley,441309926,#80234c,#91D2F2
+epl,Chelsea,Chelsea,Chelsea,22910295,#1b458f,#C4122E
+epl,C Palace,Crystal Palace,Crystal Palace,85307509,#034694,#ED1C24
+epl,Everton,Everton,Everton,15891449,#063a99,#fff
+epl,Fulham,Fulham,Fulham,22903812,#cc0000,#000
+epl,Leeds,Leeds,Leeds United,1024095475,#005b9e,#ffcd00
+epl,Leicester,Leicester,Leicester City,122392884,#1358a1,#FAB92C
+epl,Liverpool,Liverpool,Liverpool,19583545,#e0202c,#19A78E
+epl,Man City,Manchester City,Manchester City,14573900,#99c5e7,#022A5D
+epl,Man United,Manchester United,Manchester United,558797310,#dc1f29,#000
+epl,Newcastle,Newcastle United,Newcastle,35758259,#000000,#C2A475
+epl,Norwich,Norwich,Norwich City,187572312,#fff200,#00A650
+epl,Sheffield Utd,Sheffield United,Sheffield United,63463538,#ee2737,#0D171A
+epl,Southampton,Southampton,Southampton,46143892,#d41e29,#FFC20E
+epl,Tottenham,Tottenham,Tottenham Hotspur,121402638,#11214b,#11214b
+epl,Watford,Watford,Watford,226590250,#feeb00,#000
+epl,West Brom,West Bromwich Albion,West Bromwich Albion,280412626,#122f67,#122f67
+epl,West Ham,West Ham,West Ham United,156247074,#7a263a,#2AB2E5
+epl,Wolves,Wolverhampton Wanderers,Wolverhampton,49296276,#231f20,#FDB913
+laliga,Real Madrid,,,14872237,,
+laliga,Barcelona,,,96951800,,
+laliga,Atleti,,,199354750,,
+laliga,Valencia,,,109312021,,
+laliga,Sevilla,,,115123104,,
+laliga,Atletico,,,273933522,,
+bund,Bayern Munich,,,773069256,,
+bund,BVB Dortmund,,,165699676,,
+bund,Schalke,,,296163037,,
+bund,Leverkusen,,,180720589,,
+bund,Borussia,,,80790735,,
+bund,RB Leipzig,,,324992991,,
+ligue1,PSG,,,38164846,,
+ligue1,Marseille,,,40448264,,
+ligue1,Lyon,,,33893706,,
+seriea,Juventus,,,253508662,,
+seriea,AC Milan,,,186386857,,
+seriea,Inter Milan,,,124450567,,
+seriea,Atalanta,,,338995273,,
+ered,Ajax,,,153000691,,

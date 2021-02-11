@@ -17,15 +17,15 @@ generate_tweet(
 \arguments{
 \item{pred}{Data frame with \verb{\{stem\}_pred}, \verb{\{stem\}_pred_prnk}, \verb{(tm|g|xg)_(h|a)}, and \code{created_at} columns.}
 
-\item{tweets}{Tweets of the user for whom a tweets will be made in reply to. Needed for identifying the tweet to reply to.}
+\item{tweets}{Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.}
 
-\item{in_reply_to_tweets}{Tweets of the user who will be making a reply. Needed to check that a tweet hasn't already been made.}
+\item{in_reply_to_tweets}{Tweets of the user for whom a tweets will be made in reply to (xGPhilosophy by default). Needed for identifying the tweet to reply to.}
 
 \item{preds_long}{Tidy predictions with at least five columns \code{status_id}, \code{stem} (either favorite or retweet), \code{pred}, and \code{count}. This will be used to generate a plot to accompany the tweet.}
 
-\item{...}{Extra parameters first passed to .\code{save_plot()}, then passed to \code{rtweet::post_tweet()}}
+\item{...}{Extra parameters passed to .\code{save_plot()}.}
 
-\item{user}{Who is making the reply. (pundit_ratio by default.) This is only used for printing, and possibly looking up \code{in_reply_to_tweets} if it's not provided.}
+\item{user}{Who is making the reply. (pundit_ratio by default.)}
 
 \item{dry_run}{Whether or not to actually make a tweet.}
 }

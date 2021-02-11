@@ -12,10 +12,11 @@
 #' @noRd
 .get_cols_lst <- function(stem = get_valid_stems()) {
   .validate_stem(stem)
+  stems <- get_valid_stems()
   suffixes <- .get_valid_suffixes()
   cols_suffix <-
     .generate_col(
-      prefix = c('g', 'xg', 'estimated_followers_count'),
+      prefix = c('g', 'xg', 'estimated_followers_count', sprintf('%s_count_lag1', stems)),
       suffix = suffixes # .get_valid_suffixes(),
     ) %>% 
     dplyr::mutate(
@@ -25,7 +26,8 @@
           lab = ~dplyr::case_when(
             .x == 'g' ~ 'Goals',
             .x == 'xg' ~ 'xG',
-            .x == 'estimated_followers_count' ~ 'Twitter Account Followers'
+            .x == 'estimated_followers_count' ~ 'Twitter Account Followers',
+            TRUE ~ sprintf('Prior # of %ss', stringr::str_remove(.toupper1(.x), '_count_lag1'))
           )
         )
       ),
@@ -43,6 +45,7 @@
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
       
+  # NOT: Found that these time columns are among the least important, so taking them out.
   cols_time <-
     .generate_col(
       prefix = c('hour', 'wday'),
@@ -87,16 +90,69 @@
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
   
+  cols_538 <-
+    .generate_col(
+      prefix = c('spi', 'prob', 'importance'),
+      suffix = suffixes
+    ) %>% 
+    dplyr::mutate(
+      dplyr::across(
+        prefix,
+        list(
+          lab = ~dplyr::case_when(
+            .x == 'spi' ~ 'SPI',
+            .x == 'prob' ~ 'P(Win)',
+            # .x == 'proj_score' ~ 'Projected Goals',
+            .x == 'importance' ~ 'Standings Importance',
+            # .x == 'nsxg' ~ 'Non-Shot xG'
+          )
+        )
+      ),
+      dplyr::across(col, ~stringr::str_replace(.x, '_([ah])$', '_538_\\1')),
+      dplyr::across(
+        suffix,
+        list(
+          lab = ~dplyr::case_when(
+            .x == 'a' ~ 'Away',
+            .x == 'h' ~ 'Home'
+          )
+        )
+      ),
+      dplyr::across(suffix_lab, ~sprintf('538, %s', .x)),
+      # lab = sprintf('%s %s', suffix_lab, prefix_lab)
+      lab = sprintf('%s, %s', prefix_lab, suffix_lab)
+    ) %>% 
+    dplyr::select(-dplyr::matches('_lab$')) %>% 
+    dplyr::add_row(col = 'probtie_538', lab = 'P(Draw), 538')
+  cols_538
+  
+  cols_derived <-
+    dplyr::tibble(
+      col = c('xgd_h2a', 'gd_h2a', 'd_h2a'), # , 'd_agree_h2a'),
+      lab = c('xG Difference', 'Goal Difference', 'xG-Goal Difference') # , 'xG-G Difference Matches Result')
+    )
+  cols_derived
+  
   cols_lst <-
     list(
       col_y = sprintf('%s_count_log', stem),
-      # cols_id = 'status_id',
-      cols_id = 'idx',
+      cols_id = 'status_id',
+      # cols_id = 'idx',
       col_wt = 'wt',
       col_strata = 'created_at',
-      cols_extra = c('is_fresh', 'status_id', 'text', 'created_at', 'tm_a', 'tm_h', cols_suffix$col, 'estimated_followers_count', 'favorite_count', 'retweet_count'),
-      cols_x = c('estimated_followers_count', cols_time$col, cols_suffix$col),
-      cols_x_names = c('xGPhilopher\'s # of Followers', cols_time$lab, cols_suffix$lab)
+      cols_extra = c(
+        'idx',
+        'is_fresh',
+        'status_id',
+        'text',
+        'created_at',
+        'tm_a',
+        'tm_h',
+        cols_suffix$col,
+        sprintf('%s_count', c('estimated_followers', stems))
+      ),
+      cols_x = c('estimated_followers_count', cols_suffix$col, cols_538$col, cols_derived$col),
+      cols_x_names = c('xGPhilopher\'s # of Followers', cols_suffix$lab, cols_538$lab, cols_derived$lab)
     )
   cols_lst
 }

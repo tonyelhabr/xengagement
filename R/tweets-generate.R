@@ -133,8 +133,6 @@ generate_tweet <-
     }
     
     text <- glue::glue('
-    {pred$lab_hover}
-    
     xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
@@ -154,3 +152,48 @@ generate_tweet <-
       media = path_png
     )
   }
+
+# # TODO: Follow up 24 hours after the original tweet
+# generate_followup_tweet <-
+#   function(pred,
+#            tweets,
+#            in_reply_to_tweets = tweets,
+#            preds_long,
+#            ...,
+#            user = .get_user_bot(),
+#            dry_run =  TRUE) {
+#     # TODO: Just use `status_id` here?
+#     should_tweet <-
+#       .check_before_tweeting(
+#         # text = pred$text,
+#         status_id = pred$status_id,
+#         tweets = tweets,
+#         in_reply_to_tweets = in_reply_to_tweets
+#       )
+#     suffix <- glue::glue('on behalf of `user = "{user}"`')
+#     if (!should_tweet) {
+#       .display_info('Not making a tweet {suffix}.')
+#       return(NULL)
+#     }
+#     
+#     text <- glue::glue('
+#     After {} hours since original tweet:
+#     # of Favorites: {.f_number(pred$favorite_count)} ({} {} than xFavorites)
+#     # of Retweets: {.f_number(pred$retweet_count)} ({} {} than xRetweets)
+#     
+#     \U0001f517: Check my bio for more @xGPhilosophy xEngagement.
+#     ')
+#     if(dry_run) {
+#       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
+#                     {text}')
+#       return(NULL)
+#     }
+#     path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
+#     on.exit(file.remove(path_png), add = FALSE)
+#     
+#     rtweet::post_tweet(
+#       status = text,
+#       in_reply_to_status_id = pred$status_id,
+#       media = path_png
+#     )
+#   }

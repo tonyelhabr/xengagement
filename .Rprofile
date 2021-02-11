@@ -11,7 +11,7 @@ if (interactive()) {
   suppressMessages(library(devtools))
   suppressMessages(library(usethis))
   # suppressMessages(library(pkgdown))
-  # load_all()
+  load_all()
 }
 
 
