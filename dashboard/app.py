@@ -29,7 +29,7 @@ app_colors = {
 # @lru_cache(maxsize=None)
 def _import_path(stem):
     return pd.read_csv(
-        f'https://raw.githubusercontent.com/tonyelhabr/xengagement-dash/master/data/{stem}.csv'
+        f'https://raw.githubusercontent.com/tonyelhabr/xengagement/master/inst/extdata/{stem}.csv'
     )
 
 
@@ -592,12 +592,12 @@ def _identify_stem_color(stem):
     return app_colors['orange'] if stem == 'retweet' else app_colors['blue']
 
 
-def _update_common_layout_settings(fig, width=600, height=400):
+def _update_common_layout_settings(fig, width=512, height=350):
     fig.update_layout(
         {
             'showlegend': False,
             'hoverlabel_align': 'right',
-            'plot_bgcolor': '#ffffff',  # 'rgba(0, 0, 0, 0)',
+            'plot_bgcolor': '#ffffff',
             'autosize': True,
             'width': width,
             'height': height,
