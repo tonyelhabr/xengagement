@@ -207,6 +207,7 @@ do_update <- function() {
     dplyr::select(-dplyr::matches('_scaled$')) %>% 
     dplyr::arrange(total_diff_rnk)
   
+  # For tweeted viz.
   preds_long <-
     preds %>%
     dplyr::select(
@@ -223,7 +224,61 @@ do_update <- function() {
     ) %>%
     tidyr::pivot_wider(names_from = 'what', values_from = 'value') %>% 
     dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x))))
-
+  
+  # For by team viz.
+  .f_select <- function(suffix) {
+    preds %>%
+      dplyr::select(
+        idx,
+        status_id,
+        tm = !!dplyr::sym(sprintf('tm_%s', suffix)),
+        favorite_count,
+        retweet_count,
+        favorite_pred,
+        retweet_pred
+      ) %>%
+      dplyr::mutate(side = !!suffix)
+  }
+  
+  preds_by_tm <-
+    dplyr::bind_rows(.f_select('a'), .f_select('h')) %>% 
+    tidyr::pivot_longer(
+      # -matches('^(favorite|retweet)'),
+      -c(idx, status_id, tm, side),
+      names_to = c('stem', 'what'),
+      names_pattern = '(favorite|retweet)_(count|pred)'
+    ) %>%
+    tidyr::pivot_wider(names_from = 'what', values_from = 'value') %>% 
+    # dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x)))) %>% 
+    dplyr::left_join(preds %>% dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text, dplyr::matches('^total_diff')))
+  preds_by_tm
+  
+  # tweets_transformed %>% 
+  #   ggplot() +
+  #   aes(x = favorite_count, y = favorite_count) +
+  #   geom_point() +
+  #   geom_point(
+  #     data = tweets_transformed %>%  filter(tm_h == 'Arsenal' | tm_a == 'Arsenal'),
+  #     color = 'red'
+  #   )
+  # 
+  # library(tidyverse)
+  # preds_by_tm %>% 
+  #   filter(tm == 'Arsenal') %>% 
+  #   ggplot() +
+  #   aes(x = count, y = pred) +
+  #   geom_point() +
+  #   facet_wrap(~stem, scales = 'free')
+  # 
+  # preds_by_tm
+  # library(dplyr)
+  # preds_by_tm %>% 
+  #   group_by(tm, stem) %>% 
+  #   summarize(n = n(), across(total_diff_prnk, list(mean = ~mean(.x)))) %>% 
+  #   ungroup() %>% 
+  #   tidyr::pivot_wider(names_from = stem, values_from = total_diff_prnk_mean) %>% 
+  #   filter(n > 10) %>% 
+  #   arrange(desc(favorite + retweet))
   
   cols_x <- 
     dplyr::tibble(
@@ -292,11 +347,17 @@ do_update <- function() {
       names_glue = '{stem}_{.value}',
       values_fill = list(pred = 0, count = 0, sign = 'neutral', shap_value = 0)
     ) %>% 
+    dplyr::left_join(
+      preds %>% 
+        dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text), 
+      by = cols_lst$cols_id
+    ) %>% 
     dplyr::filter(feature != 'baseline') %>% 
     dplyr::arrange(dplyr::all_of(cols_lst$cols_id), feature)
   shap
   
   .export_csv(preds)
+  .export_csv(preds_by_tm)
   .export_csv(shap)
   
   # UPDATE: Fixed, but not currently using the outputs, so don't run for now.

@@ -19,7 +19,7 @@ tm_accounts$scraped_at <- today
 tm_accounts
 
 tm_mapping <-
-  file.path('data-raw', 'team_account_mapping.csv') %>% 
+  file.path('data-raw', 'tm_mapping.csv') %>% 
   readr::read_csv(
     col_types = readr::cols(
       .default = readr::col_character()
@@ -45,8 +45,8 @@ tm_accounts_mapping
 
 tm_corrections <-
   dplyr::tibble(
-    tm = c('Spurs', 'Man Utd'), # , 'Inter', 'Bayern', 'BVB', 'Dortmund', 'Leipzig'),
-    tm_correct = c('Tottenham', 'Man United') # , 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'BVB Dortmund', 'RB Leipzig')
+    tm = c('Spurs', 'Man Utd', 'C Palace'), # , 'Inter', 'Bayern', 'BVB', 'Dortmund', 'Leipzig'),
+    tm_correct = c('Tottenham', 'Man United', 'Crystal Palace') # , 'Inter Milan', 'Bayern Munich', 'BVB Dortmund', 'BVB Dortmund', 'RB Leipzig')
   )
 
 usethis::use_data(tm_accounts, tm_mapping, tm_accounts_mapping, tm_corrections, overwrite = TRUE, internal = TRUE)

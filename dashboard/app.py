@@ -651,7 +651,7 @@ def _plot_actual(df, stem, text, col_x, title_text, hovertemplate):
             y=df[col_y],
             mode='markers',
             # text=df['lab_text'],
-            text=df['lab_hover'],
+            text=df['lab_text'],
             opacity=o,
             hovertemplate=hovertemplate,
             marker={
