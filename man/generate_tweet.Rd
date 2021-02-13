@@ -10,12 +10,14 @@ generate_tweet(
   in_reply_to_tweets,
   preds_long,
   ...,
+  prelude = NULL,
   user = .get_user_bot(),
-  dry_run = TRUE
+  dry_run = TRUE,
+  delete_plot = !dry_run
 )
 }
 \arguments{
-\item{pred}{Data frame with \verb{\{stem\}_pred}, \verb{\{stem\}_pred_prnk}, \verb{(tm|g|xg)_(h|a)}, and \code{created_at} columns.}
+\item{pred}{Data frame with \verb{\{stem\}_pred}, \verb{\{stem\}_pred_prnk}, \verb{(team|g|xg)_(h|a)}, and \code{created_at} columns.}
 
 \item{tweets}{Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.}
 

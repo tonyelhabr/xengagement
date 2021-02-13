@@ -7,3 +7,4 @@
 ^assets$
 ^README\.Rmd$
 ^dashboard$
+^\.github$
