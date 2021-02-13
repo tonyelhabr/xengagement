@@ -28,34 +28,34 @@
     
     if (!train & retrieve) {
       
-      tms_distinct <- data %>% .distinct12_at(col = 'tm', suffix = .get_valid_suffixes())
+      teams_distinct <- data %>% .distinct12_at(col = 'team', suffix = .get_valid_suffixes())
       users <-
-        tm_accounts_mapping %>% 
-        dplyr::semi_join(tms_distinct, by = 'tm') %>% 
+        team_accounts_mapping %>% 
+        dplyr::semi_join(teams_distinct, by = 'team') %>% 
         dplyr::pull(user_id)
       if(length(users) == 0L) {
-        .display_warning('Could not retrieve most up-to-date follower count for {length(tms_distinct)} teams. Using pre-saved info.')
+        .display_warning('Could not retrieve most up-to-date follower count for {length(teams_distinct)} teams. Using pre-saved info.')
       } else {
-        tm_accounts <-
+        team_accounts <-
           users %>% 
           rtweet::lookup_users() %>% 
           dplyr::select(user_id, followers_count)
-        tm_accounts_mapping <-
-          tm_accounts_mapping %>% 
+        team_accounts_mapping <-
+          team_accounts_mapping %>% 
           dplyr::select(-followers_count) %>% 
-          dplyr::inner_join(tm_accounts, by = 'user_id')
+          dplyr::inner_join(team_accounts, by = 'user_id')
       }
     } else {
-      tm_accounts_mapping <- tm_accounts_mapping %>% dplyr::select(-user_id)
+      team_accounts_mapping <- team_accounts_mapping %>% dplyr::select(-user_id)
     }
     
-    tm_col <- sprintf('tm_%s', suffix)
+    team_col <- sprintf('team_%s', suffix)
     # suppressMessages(
     res <-
       data %>%
       dplyr::inner_join(
-        tm_accounts_mapping %>% dplyr::rename_all( ~ sprintf('%s_%s', .x, suffix)),
-        by = tm_col
+        team_accounts_mapping %>% dplyr::rename_all( ~ sprintf('%s_%s', .x, suffix)),
+        by = team_col
       ) %>%
       dplyr::mutate(
         !!col_diff_sym := !!latest_date - lubridate::date(!!col_created_at_sym),
@@ -81,29 +81,29 @@
 }
 
 #' @noRd
-.fix_tm_col <- function(data, suffix = .get_valid_suffixes()) {
+.fix_team_col <- function(data, suffix = .get_valid_suffixes()) {
   # browser()
   .validate_suffix(suffix)
-  col_tm_sym <- sprintf('tm_%s', suffix) %>% sym()
-  col_tm_correct_sym <- sprintf('tm_correct_%s', suffix) %>% sym()
-  # tm_corrections <- .get_tm_corrections()
-  tm_col <- sprintf('tm_%s', suffix)
+  col_team_sym <- sprintf('team_%s', suffix) %>% sym()
+  col_team_correct_sym <- sprintf('team_correct_%s', suffix) %>% sym()
+  # team_corrections <- .get_team_corrections()
+  team_col <- sprintf('team_%s', suffix)
   data %>% 
     dplyr::left_join(
-      tm_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, suffix)),
-      by = tm_col
+      team_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, suffix)),
+      by = team_col
     ) %>% 
     dplyr::mutate(
-      dplyr::across(!!col_tm_sym, ~dplyr::coalesce(!!col_tm_correct_sym, .x))
+      dplyr::across(!!col_team_sym, ~dplyr::coalesce(!!col_team_correct_sym, .x))
     ) %>% 
-    dplyr::select(-!!col_tm_correct_sym)
+    dplyr::select(-!!col_team_correct_sym)
 }
 
 #' @noRd
-.fix_tm_cols <- function(data) {
+.fix_team_cols <- function(data) {
   data %>% 
-    .fix_tm_col('h') %>% 
-    .fix_tm_col('a')
+    .fix_team_col('h') %>% 
+    .fix_team_col('a')
 }
 
 #' @noRd
@@ -122,7 +122,7 @@
     ) %>% 
     dplyr::filter(league == 'Barclays Premier League' & season >= 2019 & !is.na(score1)) %>% 
     dplyr::select(-c(league, league_id)) %>% 
-    dplyr::rename(date_538 = date, tm_538_h = team1, tm_538_a = team2, probtie_538 = probtie) %>% 
+    dplyr::rename(date_538 = date, team_538_h = team1, team_538_a = team2, probtie_538 = probtie) %>% 
     dplyr::rename_with(~stringr::str_replace(.x, '1$', '_538_h'), dplyr::matches('1$')) %>% 
     dplyr::rename_with(~stringr::str_replace(.x, '2$', '_538_a'), dplyr::matches('2$'))
   matches
@@ -133,7 +133,7 @@
 .add_538_cols <- function(data, matches = .retrieve_538_matches()) {
   # matches = .retrieve_538_matches()
   data %>% 
-    dplyr::inner_join(matches, by = c('season', 'tm_538_h', 'tm_538_a'))
+    dplyr::inner_join(matches, by = c('season', 'team_538_h', 'team_538_a'))
 }
 
 #' @noRd
@@ -236,12 +236,12 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         dplyr::across(
           text,
           list(
-            tm_h = ~ .str_replace_text(.x, 1) %>% .remove_emoticons(),
+            team_h = ~ .str_replace_text(.x, 1) %>% .remove_emoticons(),
             xg_h = ~ .str_replace_text(.x, 2) %>% as.numeric(),
             g_h = ~ .str_replace_text(.x, 3) %>% as.integer(),
             g_a = ~ .str_replace_text(.x, 4) %>% as.integer(),
             xg_a = ~ .str_replace_text(.x, 5) %>% as.numeric(),
-            tm_a = ~ .str_replace_text(.x, 6) %>% .remove_emoticons()
+            team_a = ~ .str_replace_text(.x, 6) %>% .remove_emoticons()
           ),
           .names = '{fn}'
         )
@@ -254,7 +254,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       ) %>% 
       # There's a Biden Trump tweet that won't get past this filter. This filter helps overcome other weird tweets.
       dplyr::filter(g_h <= 10 & g_a <= 10 & xg_h <= 10 & xg_a <= 10) %>% 
-      .fix_tm_cols() %>% 
+      .fix_team_cols() %>% 
       # Update since non-EPL teams are now being tweeted on another account... Use inner_join instead of left_join
       .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
       .add_538_cols() %>% 
@@ -278,18 +278,18 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       dplyr::mutate(
         idx = dplyr::row_number(created_at)
       ) %>% 
-      dplyr::relocate(idx, dplyr::matches('^tm_'), dplyr::matches('^estimated_followers_count_'))
+      dplyr::relocate(idx, dplyr::matches('^team_'), dplyr::matches('^estimated_followers_count_'))
   )
   
   # standings <- .retrieve_understatr()
-  # standings <- standings %>% dplyr::select(-c(lg, g)) %>% dplyr::rename(tm_understat = tm)
+  # standings <- standings %>% dplyr::select(-c(lg, g)) %>% dplyr::rename(team_understat = team)
   # res
   # res %>% dplyr::inner_join(standings %>% dplyr::rename_all(~sprintf('%s_h', .x)))
   
   .f_distinct <- function(suffix = .get_valid_suffixes()) {
     res_proc %>% 
       dplyr::distinct(
-        tm = !!sym(sprintf('tm_%s', suffix)), 
+        team = !!sym(sprintf('team_%s', suffix)), 
         created_at, 
         favorite_count, 
         retweet_count
@@ -300,7 +300,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   
   res_lag <-
     res_grps %>% 
-    dplyr::group_by(tm) %>% 
+    dplyr::group_by(team) %>% 
     dplyr::mutate(
       dplyr::across(
         dplyr::matches('^(favorite|retweet)_count$'),
@@ -320,7 +320,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
             ~sprintf('%s_%s', .x, suffix),
             -c(created_at)
           ),
-        by = c('created_at', sprintf('tm_%s', suffix))
+        by = c('created_at', sprintf('team_%s', suffix))
       )
   }
   

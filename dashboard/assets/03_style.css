@@ -40,7 +40,7 @@ https://github.com/plotly/dash-core-components/blob/557d2fd4987c437265d220f71ee6
   /* color: inherit !important; */
   text-align: center;
   font-size: inherit !important;
-  height: 25px !important;
+  height: 34px !important;
   width: 100% !important;
   padding-left: 3px !important;
   padding-right: 3px !important;
@@ -133,8 +133,8 @@ h6 {
   /* padding-top: 3px;
   padding-bottom: 3px;
   vertical-align: central;
-  text-align: center;
-  font-weight: 350; */
+  text-align: center;*/
+  font-weight: bold;
   color: #ffffff;
 }
 /* 
@@ -145,6 +145,15 @@ p {
 /*
 custom 
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
+/* title */
+h1 {
+  font-size: 1.5rem;
+}
+
+/* navbar */
+h4 {
+  font-size: 1rem;
+}
 
 a:link {
   color: #003f5c;

@@ -146,8 +146,8 @@
         'status_id',
         'text',
         'created_at',
-        'tm_a',
-        'tm_h',
+        'team_a',
+        'team_h',
         cols_suffix$col,
         sprintf('%s_count', c('estimated_followers', stems))
       ),

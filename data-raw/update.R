@@ -145,34 +145,16 @@ do_update <- function() {
         sprintf(
           '%s: %s (%.2f) %d-%d (%.2f) %s',
           lubridate::date(created_at),
-          # lubridate::hour(created_at),
-          # lubridate::wday(created_at, label = TRUE),
-          tm_h,
+          team_h,
           xg_h,
           g_h,
           g_a,
           xg_a,
-          tm_a
-        ),
-      lab_hover = stringr::str_remove(lab_text, '^.*[:]\\s')
+          team_a
+        )
     ) %>% 
     dplyr::arrange(idx)
   
-  # mapes <-
-  #   preds_init %>% 
-  #   dplyr::filter(favorite_count > 0 & retweet_count > 0 & favorite_pred > 0 & retweet_pred > 0) %>% 
-  #   dplyr::summarize(
-  #     mape_favorite = mean(abs((favorite_count - favorite_pred) / favorite_count), na.rm = TRUE),
-  #     mape_retweet = mean(abs((retweet_count - retweet_pred) / retweet_count), na.rm = TRUE)
-  #   ) %>% 
-  #   dplyr::mutate(
-  #     mapes = mape_favorite + mape_retweet,
-  #     wt_favorite = mape_retweet / mapes,
-  #     wt_retweet = mape_favorite / mapes
-  #   )
-  # mapes
-  # wt_favorite <- mapes$wt_favorite
-  # wt_retweet <- mapes$wt_retweet
   wt_favorite <- 0.5
   wt_retweet <- 0.5
   
@@ -208,6 +190,12 @@ do_update <- function() {
     dplyr::arrange(total_diff_rnk)
   
   # For tweeted viz.
+  .toupper1 <- function(x) {
+    x <- tolower(x)
+    substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+    x
+  }
+  
   preds_long <-
     preds %>%
     dplyr::select(
@@ -231,7 +219,8 @@ do_update <- function() {
       dplyr::select(
         idx,
         status_id,
-        tm = !!dplyr::sym(sprintf('tm_%s', suffix)),
+        created_at,
+        team = !!dplyr::sym(sprintf('team_%s', suffix)),
         favorite_count,
         retweet_count,
         favorite_pred,
@@ -240,45 +229,11 @@ do_update <- function() {
       dplyr::mutate(side = !!suffix)
   }
   
-  preds_by_tm <-
+  preds_by_team <-
     dplyr::bind_rows(.f_select('a'), .f_select('h')) %>% 
-    tidyr::pivot_longer(
-      # -matches('^(favorite|retweet)'),
-      -c(idx, status_id, tm, side),
-      names_to = c('stem', 'what'),
-      names_pattern = '(favorite|retweet)_(count|pred)'
-    ) %>%
-    tidyr::pivot_wider(names_from = 'what', values_from = 'value') %>% 
-    # dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x)))) %>% 
     dplyr::left_join(preds %>% dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text, dplyr::matches('^total_diff')))
-  preds_by_tm
+  preds_by_team
   
-  # tweets_transformed %>% 
-  #   ggplot() +
-  #   aes(x = favorite_count, y = favorite_count) +
-  #   geom_point() +
-  #   geom_point(
-  #     data = tweets_transformed %>%  filter(tm_h == 'Arsenal' | tm_a == 'Arsenal'),
-  #     color = 'red'
-  #   )
-  # 
-  # library(tidyverse)
-  # preds_by_tm %>% 
-  #   filter(tm == 'Arsenal') %>% 
-  #   ggplot() +
-  #   aes(x = count, y = pred) +
-  #   geom_point() +
-  #   facet_wrap(~stem, scales = 'free')
-  # 
-  # preds_by_tm
-  # library(dplyr)
-  # preds_by_tm %>% 
-  #   group_by(tm, stem) %>% 
-  #   summarize(n = n(), across(total_diff_prnk, list(mean = ~mean(.x)))) %>% 
-  #   ungroup() %>% 
-  #   tidyr::pivot_wider(names_from = stem, values_from = total_diff_prnk_mean) %>% 
-  #   filter(n > 10) %>% 
-  #   arrange(desc(favorite + retweet))
   
   cols_x <- 
     dplyr::tibble(
@@ -357,7 +312,7 @@ do_update <- function() {
   shap
   
   .export_csv(preds)
-  .export_csv(preds_by_tm)
+  .export_csv(preds_by_team)
   .export_csv(shap)
   
   # UPDATE: Fixed, but not currently using the outputs, so don't run for now.

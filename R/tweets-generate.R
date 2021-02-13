@@ -101,7 +101,7 @@
 #' Generate a tweet
 #' 
 #' Generate a tweet
-#' @param pred Data frame with `{stem}_pred`, `{stem}_pred_prnk`, `(tm|g|xg)_(h|a)`, and `created_at` columns.
+#' @param pred Data frame with `{stem}_pred`, `{stem}_pred_prnk`, `(team|g|xg)_(h|a)`, and `created_at` columns.
 #' @param in_reply_to_tweets Tweets of the user for whom a tweets will be made in reply to (xGPhilosophy by default). Needed for identifying the tweet to reply to.
 #' @param tweets Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.
 #' @param preds_long Tidy predictions with at least five columns `status_id`, `stem` (either favorite or retweet), `pred`, and `count`. This will be used to generate a plot to accompany the tweet.
@@ -116,8 +116,10 @@ generate_tweet <-
            in_reply_to_tweets,
            preds_long,
            ...,
+           prelude = NULL,
            user = .get_user_bot(),
-           dry_run =  TRUE) {
+           dry_run = TRUE,
+           delete_plot = !dry_run) {
     # TODO: Just use `status_id` here?
     should_tweet <-
       .check_before_tweeting(
@@ -132,11 +134,15 @@ generate_tweet <-
       return(NULL)
     }
     
-    text <- glue::glue('
-    xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
-    xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
+    if(!is.null(prelude)) {
+      prelude <- glue::glue('{prelude}
+      
+      ')
+    }
     
-    \U0001f517: Check my bio for more @xGPhilosophy xEngagement.
+    text <- glue::glue('
+    {prelude}xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
+    xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     ')
     if(dry_run) {
       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
@@ -144,7 +150,10 @@ generate_tweet <-
       return(NULL)
     }
     path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
-    on.exit(file.remove(path_png), add = FALSE)
+    
+    if(delete_plot) {
+      on.exit(file.remove(path_png), add = FALSE)
+    }
 
     rtweet::post_tweet(
       status = text,

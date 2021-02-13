@@ -49,12 +49,12 @@ preds_init <-
         lubridate::date(created_at),
         # lubridate::hour(created_at),
         # lubridate::wday(created_at, label = TRUE),
-        tm_h,
+        team_h,
         xg_h,
         g_h,
         g_a,
         xg_a,
-        tm_a
+        team_a
       ),
     lab_hover = stringr::str_remove(lab_text, '^.*[:]\\s')
   ) %>% 
@@ -116,7 +116,7 @@ preds
     dplyr::select(
       idx,
       status_id,
-      tm = !!dplyr::sym(sprintf('tm_%s', suffix)),
+      team = !!dplyr::sym(sprintf('team_%s', suffix)),
       favorite_count,
       retweet_count,
       favorite_pred,
@@ -129,7 +129,7 @@ preds_long <-
   dplyr::bind_rows(.f_select('a'), .f_select('h')) %>% 
   tidyr::pivot_longer(
     # -matches('^(favorite|retweet)'),
-    -c(idx, status_id, tm, side),
+    -c(idx, status_id, team, side),
     names_to = c('stem', 'what'),
     names_pattern = '(favorite|retweet)_(count|pred)'
   ) %>%
@@ -137,17 +137,17 @@ preds_long <-
   dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x))))
 preds_long
 
-# tms_filt <- c('Man City', 'Liverpool', 'Chelsea', 'Man United', 'Arsenal', 'Tottenham')
-tms_filt <- 'Brighton'
+# teams_filt <- c('Man City', 'Liverpool', 'Chelsea', 'Man United', 'Arsenal', 'Tottenham')
+teams_filt <- 'Brighton'
 viz_preds <-
   preds_long %>% 
-  dplyr::filter(!(tm %in% tms_filt)) %>% 
+  dplyr::filter(!(team %in% teams_filt)) %>% 
   ggplot2::ggplot() +
   ggplot2::aes(x = pred, y = count) +
   ggplot2::geom_point(alpha = 1, color = 'grey80') +
   ggplot2::geom_point(
-    data = preds_long %>% dplyr::filter(tm %in% tms_filt),
-    ggplot2::aes(color = tm),
+    data = preds_long %>% dplyr::filter(team %in% teams_filt),
+    ggplot2::aes(color = team),
     show.legend = FALSE,
     size = 2,
     inherit.aes = TRUE

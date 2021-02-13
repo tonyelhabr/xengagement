@@ -34,7 +34,7 @@ usethis::use_data(fit_favorite, fit_retweet, overwrite = TRUE)
 res_preds <-
   dplyr::tibble(
     stem = valid_stems,
-    fit = list(xengagement::fit_favorite, xengagement::fit_retweet)
+    fit = list(fit_favorite, fit_retweet)
   ) %>% 
   dplyr::mutate(
     res = purrr::map2(
