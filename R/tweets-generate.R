@@ -138,6 +138,8 @@ generate_tweet <-
       prelude <- glue::glue('{prelude}
       
       ')
+    } else {
+      prelude <- ''
     }
     
     text <- glue::glue('

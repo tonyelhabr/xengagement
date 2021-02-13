@@ -133,7 +133,7 @@
 .add_538_cols <- function(data, matches = .retrieve_538_matches()) {
   # matches = .retrieve_538_matches()
   data %>% 
-    dplyr::inner_join(matches, by = c('season', 'team_538_h', 'team_538_a'))
+    dplyr::left_join(matches, by = c('season', 'team_538_h', 'team_538_a'))
 }
 
 #' @noRd
@@ -200,30 +200,9 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         dplyr::across(
           created_at,
           list(
-            hour = lubridate::hour,
-            wday = ~lubridate::wday(.x) %>% as.integer(),
             created_date = lubridate::date
           ),
           .names = '{fn}'
-        ),
-        # is_weekend = if_else(wday %in% c(1L, 7L), TRUE, FALSE),
-        dplyr::across(
-          hour,
-          list(
-            x1 = ~.hour_fourier_term(.x, f = sin, order = 1),
-            y1 = ~.hour_fourier_term(.x, f = cos, order = 1),
-            x2 = ~.hour_fourier_term(.x, f = sin, order = 2),
-            y2 = ~.hour_fourier_term(.x, f = sin, order = 2)
-          )
-        ),
-        dplyr::across(
-          wday,
-          list(
-            x1 = ~.wday_fourier_term(.x, f = sin, order = 1),
-            y1 = ~.wday_fourier_term(.x, f = cos, order = 1),
-            x2 = ~.wday_fourier_term(.x, f = sin, order = 2),
-            y2 = ~.wday_fourier_term(.x, f = sin, order = 2)
-          )
         ),
         dplyr::across(
           text, 

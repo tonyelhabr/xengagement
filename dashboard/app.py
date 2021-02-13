@@ -957,27 +957,6 @@ def _plot_v_pred(df, stem, text=None, team=None):
     return fig
 
 
-def _plot_v_pred_by_team(df, stem, text=None, team=None):
-    col_x = f'{stem}_pred'
-    lab_stem = _convert_stem_to_lab(stem)
-    lab_y = f'Actual'
-    lab_x = f'Predicted'
-    title_text = f'Actual vs. Predicted {lab_stem}'
-    hovertemplate = '%{text}<br>' + lab_y + ': %{y:0,000}</br>' + lab_x + ': %{x:,.0f}<br></br><extra></extra>'
-    fig = _plot_actual_by_team(
-        df=df,
-        stem=stem,
-        team=team,
-        col_x=col_x,
-        title_text=title_text,
-        hovertemplate=hovertemplate
-    )
-    fig.update_layout({
-        'xaxis_tickformat': ',.',
-    })
-    return fig
-
-
 def _identify_sign_color(sign):
     if sign == 'neg':
         color = app_colors['purple']
@@ -1054,11 +1033,9 @@ def _plot_shap(df, stem, text):
 )
 def update_charts(start_date, end_date, text):
     preds_filt = _filter_date_between(preds, start_date, end_date)
-    # print('favs over time')
     favorites_over_time = _plot_over_time(
         preds_filt, stem='favorite', text=text
     )
-    # print('retweets over time')
     retweets_over_time = _plot_over_time(preds_filt, stem='retweet', text=text)
     return favorites_over_time, retweets_over_time
 
@@ -1116,10 +1093,10 @@ def update_charts(start_date, end_date, text):
 )
 def update_charts(start_date, end_date, team):
     preds_by_team_filt = _filter_date_between(preds_by_team, start_date, end_date)
-    favorites_v_pred_by_team = _plot_v_pred_by_team(
-        preds_by_team_filt, stem='favorite', text=None, team=team
+    favorites_v_pred_by_team = _plot_v_pred(
+        preds_by_team_filt, stem='favorite', team=team
     )
-    retweets_v_pred_by_team = _plot_v_pred_by_team(preds_by_team_filt, stem='retweet', text=None, team=team)
+    retweets_v_pred_by_team = _plot_v_pred(preds_by_team_filt, stem='retweet', team=team)
     return favorites_v_pred_by_team, retweets_v_pred_by_team
 
 
