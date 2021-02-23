@@ -73,8 +73,14 @@
       preds_long %>% 
       ggplot2::ggplot() +
       ggplot2::aes(x = pred, y = count) +
-      ggplot2::geom_point(ggplot2::aes(color = stem), alpha = 0.3, show.legend = FALSE) +
-      ggplot2::geom_point(data = preds_long_filt, color = 'black', size = 4) +
+      ggplot2::geom_point(
+        ggplot2::aes(color = stem), alpha = 0.3, show.legend = FALSE
+      ) +
+      ggplot2::geom_point(
+        data = preds_long_filt %>% dplyr::mutate(count = pred), 
+        color = 'black', 
+        size = 4
+      ) +
       ggplot2::geom_label(
         data = preds_long_filt %>% dplyr::rowwise() %>% dplyr::mutate(x = max(pred * 1.1, pred + 100), y = x),
         ggplot2::aes(x = x, y = y, label = glue::glue('x{stem}: {scales::number(pred, accuracy = 1, big.mark = ",")}')),

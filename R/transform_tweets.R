@@ -107,7 +107,7 @@
 }
 
 #' @noRd
-.retrieve_538_matches <- # memoise::memoise({
+.retrieve_matches_538 <- # memoise::memoise({
   function() {
   matches <- 
     readr::read_csv(
@@ -120,7 +120,7 @@
         team2 = readr::col_character()
       )
     ) %>% 
-    dplyr::filter(league == 'Barclays Premier League' & season >= 2019 & !is.na(score1)) %>% 
+    dplyr::filter(league == 'Barclays Premier League' & season >= 2019) %>% 
     dplyr::select(-c(league, league_id)) %>% 
     dplyr::rename(date_538 = date, team_538_h = team1, team_538_a = team2, probtie_538 = probtie) %>% 
     dplyr::rename_with(~stringr::str_replace(.x, '1$', '_538_h'), dplyr::matches('1$')) %>% 
@@ -130,26 +130,12 @@
 # })
 
 #' @noRd
-.add_538_cols <- function(data, matches = .retrieve_538_matches()) {
-  # matches = .retrieve_538_matches()
+.add_cols_538 <- function(data, matches = .retrieve_matches_538()) {
+  # matches = .retrieve_matches_538()
   data %>% 
     dplyr::left_join(matches, by = c('season', 'team_538_h', 'team_538_a'))
 }
 
-#' @noRd
-.fourier_term <- function(x, period, f = sin, order) {
-  f(2 * order * pi * x / period)
-}
-
-#' @noRd
-.hour_fourier_term <- function(...) {
-  .fourier_term(period = 24, ...)
-}
-
-#' @noRd
-.wday_fourier_term <- function(...) {
-  .fourier_term(period = 7, ...)
-}
 
 #' Transform tweets
 #' 
@@ -236,19 +222,19 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       .fix_team_cols() %>% 
       # Update since non-EPL teams are now being tweeted on another account... Use inner_join instead of left_join
       .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
-      .add_538_cols() %>% 
+      .add_cols_538() %>% 
       dplyr::mutate(
         # is_gt_h = dplyr::if_else(xg_h - g_h > 0, 1L, 0L),
         # is_gt_a = dplyr::if_else(xg_a - g_a > 0, 1L, 0L),
         xgd_h2a = xg_h - xg_a,
         gd_h2a = g_h - g_a,
-        d_h2a = xgd_h2a - gd_h2a,
-        d_agree_h2a = 
-          dplyr::case_when(
-            xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
-            xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
-            TRUE ~ 0L
-          )
+        # d_agree_h2a = 
+        #   dplyr::case_when(
+        #     xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
+        #     xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
+        #     TRUE ~ 0L
+        #   ),
+        d_h2a = xgd_h2a - gd_h2a
       ) %>% 
       # Don't keep games where neither side's followers can be estimated.
       # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
@@ -313,7 +299,11 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
     res <-
       res %>% 
       dplyr::mutate(
-        wt = (.data$idx / max(.data$idx))^2
+        dplyr::across(
+          dplyr::matches('^(favorite|retweet)_count$'),
+          list(prnk = ~dplyr::percent_rank(.x))
+        ),
+        wt = dplyr::percent_rank(favorite_count_prnk + retweet_count_prnk)^2
       ) %>% 
       dplyr::relocate(idx, wt)
   }

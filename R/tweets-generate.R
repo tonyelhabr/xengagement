@@ -146,17 +146,17 @@ generate_tweet <-
     {prelude}xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     ')
+
+    path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
+    if(delete_plot) {
+      on.exit(file.remove(path_png), add = FALSE)
+    }
+    
     if(dry_run) {
       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
                     {text}')
       return(NULL)
     }
-    path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
-    
-    if(delete_plot) {
-      on.exit(file.remove(path_png), add = FALSE)
-    }
-
     rtweet::post_tweet(
       status = text,
       in_reply_to_status_id = pred$status_id,

@@ -92,7 +92,7 @@
   
   cols_538 <-
     .generate_col(
-      prefix = c('spi', 'prob', 'importance'),
+      prefix = c('prob'),
       suffix = suffixes
     ) %>% 
     dplyr::mutate(
@@ -100,10 +100,10 @@
         prefix,
         list(
           lab = ~dplyr::case_when(
-            .x == 'spi' ~ 'SPI',
+            # .x == 'spi' ~ 'SPI',
             .x == 'prob' ~ 'P(Win)',
             # .x == 'proj_score' ~ 'Projected Goals',
-            .x == 'importance' ~ 'Standings Importance',
+            # .x == 'importance' ~ 'Standings Importance',
             # .x == 'nsxg' ~ 'Non-Shot xG'
           )
         )
