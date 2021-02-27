@@ -29,5 +29,5 @@ jobs:
         
       - name: Commit results
         run: |
-          git commit -m "Updated data" -a || echo "No changes to commit"
+          git diff --quiet && git diff --staged --quiet || git commit -am 'Auto-updated data'
           git push https://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}.git HEAD:${{ github.ref }} || echo "No changes to commit"

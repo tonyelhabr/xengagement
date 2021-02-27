@@ -60,21 +60,6 @@ preds_init <-
   ) %>% 
   dplyr::arrange(idx)
 
-# mapes <-
-#   preds_init %>% 
-#   dplyr::filter(favorite_count > 0 & retweet_count > 0 & favorite_pred > 0 & retweet_pred > 0) %>% 
-#   dplyr::summarize(
-#     mape_favorite = mean(abs((favorite_count - favorite_pred) / favorite_count), na.rm = TRUE),
-#     mape_retweet = mean(abs((retweet_count - retweet_pred) / retweet_count), na.rm = TRUE)
-#   ) %>% 
-#   dplyr::mutate(
-#     mapes = mape_favorite + mape_retweet,
-#     wt_favorite = mape_retweet / mapes,
-#     wt_retweet = mape_favorite / mapes
-#   )
-# mapes
-# wt_favorite <- mapes$wt_favorite
-# wt_retweet <- mapes$wt_retweet
 wt_favorite <- 0.5
 wt_retweet <- 0.5
 
@@ -144,6 +129,7 @@ viz_preds <-
   dplyr::filter(!(team %in% teams_filt)) %>% 
   ggplot2::ggplot() +
   ggplot2::aes(x = pred, y = count) +
+  ggplot2::geom_abline(ggplot2::aes(slope = 1, intercept = 0), size = 1, linetype = 2) +
   ggplot2::geom_point(alpha = 1, color = 'grey80') +
   ggplot2::geom_point(
     data = preds_long %>% dplyr::filter(team %in% teams_filt),
@@ -152,7 +138,6 @@ viz_preds <-
     size = 2,
     inherit.aes = TRUE
   ) +
-  # ggplot2::geom_abline(ggplot2::aes(slope = 1, intercept = 0), size = 1, linetype = 2) +
   ggplot2::scale_y_continuous(labels = scales::comma) +
   ggplot2::scale_x_continuous(labels = scales::comma) +
   ggplot2::facet_wrap(~stem, scales = 'free') +

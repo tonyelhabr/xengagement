@@ -303,8 +303,11 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
           dplyr::matches('^(favorite|retweet)_count$'),
           list(prnk = ~dplyr::percent_rank(.x))
         ),
-        wt = dplyr::percent_rank(favorite_count_prnk + retweet_count_prnk)^2
+        wt1 = dplyr::percent_rank(favorite_count_prnk + retweet_count_prnk)^2,
+        wt2 = dplyr::percent_rank(.data$idx)^2,
+        wt = dplyr::percent_rank(wt1 + wt2)^2
       ) %>% 
+      dplyr::select(-c(wt1, wt2)) %>% 
       dplyr::relocate(idx, wt)
   }
   

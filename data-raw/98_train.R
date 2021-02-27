@@ -10,6 +10,11 @@ tweets <- retrieve_tweets(method = method, token = token)
 tweets_transformed <- tweets %>% transform_tweets(train = train)
 .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
 tweets_transformed
+library(ggplot2)
+tweets_transformed %>% 
+  ggplot() +
+  aes(x = created_at, y = wt) +
+  geom_point()
 
 res_fit <-
   valid_stems %>% 

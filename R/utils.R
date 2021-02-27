@@ -26,6 +26,11 @@ do_getengagement_seed <- function() {
 }
 
 #' @noRd
+.get_n_minute_delay <- function() {
+  getOption('xengagement.n_minute_delay')
+}
+
+#' @noRd
 .get_n_minute_lookback <- function() {
   getOption('xengagement.n_minute_lookback')
 }
@@ -71,3 +76,13 @@ get_valid_stems <- function() {
     x
   }
 }
+
+#' #' @noRd
+#' .is_github_aciton <- function(...) {
+#'   res <- Sys.getenv('IS_GITHUB_ACTION')
+#'   if(is.null(res)) {
+#'     return(FALSE)
+#'   }
+#'   res
+#' }
+
