@@ -92,7 +92,7 @@
   
   cols_538 <-
     .generate_col(
-      prefix = c('prob'),
+      prefix = c('spi', 'proj_score', 'importance'),
       suffix = suffixes
     ) %>% 
     dplyr::mutate(
@@ -100,10 +100,10 @@
         prefix,
         list(
           lab = ~dplyr::case_when(
-            # .x == 'spi' ~ 'SPI',
-            .x == 'prob' ~ 'P(Win)',
-            # .x == 'proj_score' ~ 'Projected Goals',
-            # .x == 'importance' ~ 'Standings Importance',
+            .x == 'spi' ~ 'SPI',
+            # .x == 'prob' ~ 'P(Win)',
+            .x == 'proj_score' ~ 'Projected Goals',
+            .x == 'importance' ~ 'Standings Importance',
             # .x == 'nsxg' ~ 'Non-Shot xG'
           )
         )
@@ -128,17 +128,33 @@
   
   cols_derived <-
     dplyr::tibble(
-      col = c('xgd_h2a', 'gd_h2a', 'd_h2a'), # , 'd_agree_h2a'),
-      lab = c('xG Difference', 'Goal Difference', 'xG-Goal Difference') # , 'xG-G Difference Matches Result')
+      col = c('xgd_h2a', 'gd_h2a', 'd_h2a', 'proj_score_538_h2a'), # , 'd_agree_h2a'),
+      lab = c('xG Difference', 'Goal Difference', 'xG-Goal Difference', 'Projected Goal Difference, 538') # , 'xG-G Difference Matches Result')
     )
   cols_derived
   
+  cols_other <-
+    dplyr::tibble(
+      col = c('estimated_followers_count', 'is_weekend'),
+      lab = c('xGPhilopher\'s # of Followers', 'Weekend Match (Y/N)')
+    )
+  cols_other
+  
+  cols_named <-
+    list(
+      cols_other,
+      cols_suffix,
+      cols_538,
+      cols_derived
+    ) %>% 
+    purrr::reduce(dplyr::bind_rows)
+  
   cols_lst <-
     list(
-      col_y = sprintf('%s_count_log', stem),
+      col_y = sprintf('%s_count_trans', stem),
       cols_id = 'status_id',
       # cols_id = 'idx',
-      col_wt = 'wt',
+      col_wt = sprintf('wt_%s', stem),
       col_strata = 'created_at',
       cols_extra = c(
         'idx',
@@ -151,8 +167,8 @@
         cols_suffix$col,
         sprintf('%s_count', c('estimated_followers', stems))
       ),
-      cols_x = c('estimated_followers_count', cols_suffix$col, cols_538$col, cols_derived$col),
-      cols_x_names = c('xGPhilopher\'s # of Followers', cols_suffix$lab, cols_538$lab, cols_derived$lab)
+      cols_x = cols_named$col,
+      cols_x_names = cols_named$lab
     )
   cols_lst
 }

@@ -174,19 +174,23 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
     ) %>% 
     dplyr::select(-idx)
   
+  res_filt <-
+    res_init %>% 
+    # Drop half time scores, and just anything with commas or new lines since those aren't score line tweets.
+    dplyr::filter(text %>% stringr::str_detect('^HT|\\,|\\n', negate = TRUE)) %>%
+    # We know that a score line tweet has this.
+    dplyr::filter(text %>% stringr::str_detect('\\(')) 
+
   suppressWarnings(
     res_proc <-
-      res_init %>% 
-      # Drop half time scores, and just anything with commas or new lines since those aren't score line tweets.
-      dplyr::filter(text %>% stringr::str_detect('^HT|\\,|\\n', negate = TRUE)) %>%
-      # We know that a score line tweet has this.
-      dplyr::filter(text %>% stringr::str_detect('\\(')) %>%
+      res_filt %>% 
       dplyr::mutate(
-        dplyr::across(c(favorite_count, retweet_count), list(log = ~log(.x + 1))),
+        dplyr::across(dplyr::matches('^(favorite|retweet)_count$'), list(trans = ~log(.x + 1))),
         dplyr::across(
           created_at,
           list(
-            created_date = lubridate::date
+            created_date = lubridate::date,
+            is_weekend = ~ifelse(lubridate::wday(.x) %in% c(7L, 1L), 1L, 0L)
           ),
           .names = '{fn}'
         ),
@@ -228,13 +232,17 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         # is_gt_a = dplyr::if_else(xg_a - g_a > 0, 1L, 0L),
         xgd_h2a = xg_h - xg_a,
         gd_h2a = g_h - g_a,
+        proj_score_538_h2a = proj_score_538_h - proj_score_538_a,
         # d_agree_h2a = 
         #   dplyr::case_when(
         #     xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
         #     xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
         #     TRUE ~ 0L
         #   ),
-        d_h2a = xgd_h2a - gd_h2a
+        d_h2a = xgd_h2a - gd_h2a # ,
+        # team_xg_w = dplyr::if_else(xg_h > xg_a, team_h, team_a)
+        # estimated_follower_count_w = ifelse(team_xg_w == team_h, team_h, team_a),
+        # estimated_follower_count_l = ifelse(team_xg_w == team_h, team_a, team_h)
       ) %>% 
       # Don't keep games where neither side's followers can be estimated.
       # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
@@ -251,7 +259,19 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   # res
   # res %>% dplyr::inner_join(standings %>% dplyr::rename_all(~sprintf('%s_h', .x)))
   
+  # rec <-
+  #   res_proc %>% 
+  #   recipes::recipe(formula(~.), data = .) %>% 
+  #   recipes::step_YeoJohnson(favorite_count, retweet_count)
+  # 
+  # res_trans <-
+  #   rec %>% 
+  #   recipes::prep() %>% 
+  #   recipes::bake(new_data = res_proc)
+  # browser()
+  
   .f_distinct <- function(suffix = .get_valid_suffixes()) {
+    # res_trans %>% 
     res_proc %>% 
       dplyr::distinct(
         team = !!sym(sprintf('team_%s', suffix)), 
@@ -290,26 +310,31 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   }
   
   res <-
+    # res_trans %>% 
     res_proc %>% 
     .f_join_rename('h') %>% 
     .f_join_rename('a')
+  
 
-  if(train) {
-    # Getting weird error without .data$idx
-    res <-
-      res %>% 
-      dplyr::mutate(
-        dplyr::across(
-          dplyr::matches('^(favorite|retweet)_count$'),
-          list(prnk = ~dplyr::percent_rank(.x))
-        ),
-        wt1 = dplyr::percent_rank(favorite_count_prnk + retweet_count_prnk)^2,
-        wt2 = dplyr::percent_rank(.data$idx)^2,
-        wt = dplyr::percent_rank(wt1 + wt2)^2
-      ) %>% 
-      dplyr::select(-c(wt1, wt2)) %>% 
-      dplyr::relocate(idx, wt)
-  }
+  # if(train) {
+  # Getting weird error without .data$idx
+  .power <- 2
+  res <-
+    res %>% 
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::matches('^(favorite|retweet)_count$'),
+        list(prnk = ~dplyr::percent_rank(.x))
+      ),
+      wt1_favorite = dplyr::percent_rank(favorite_count_prnk)^.power,
+      wt1_retweet = dplyr::percent_rank(retweet_count_prnk)^.power,
+      wt.power = dplyr::percent_rank(.data$idx)^.power,
+      wt_favorite = dplyr::percent_rank(wt1_favorite + wt.power)^.power,
+      wt_retweet = dplyr::percent_rank(wt1_retweet + wt.power)^.power
+    ) %>% 
+    dplyr::select(-dplyr::matches('^wt[1.power].*')) %>% 
+    dplyr::relocate(idx, dplyr::matches('^wt_'))
+  # }
   
   res
 }

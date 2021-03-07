@@ -83,7 +83,8 @@ do_predict <-
           cols_id = cols_lst$cols_id,
           cols_extra = cols_lst$cols_extra,
           col_y = cols_lst$col_y,
-          f_trans = .inverse_log
+          # f_trans = .inverse_log
+          f_trans = function(x) { exp(x) - 1 }
         )
       preds
     }
@@ -107,7 +108,7 @@ do_predict <-
           preds = preds,
           cols_id = cols_lst$cols_id,
           # Is there a non-hacky way to get around this?
-          col_y = stringr::str_remove(cols_lst$col_y, '_log')
+          col_y = stringr::str_remove(cols_lst$col_y, '_trans')
         )
     }
     

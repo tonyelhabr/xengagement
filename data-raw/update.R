@@ -51,7 +51,6 @@ cat(sprintf('Files in `dir_data = "%s"`.', dir_data), sep = '\n')
 }
 
 # main ----
-# do_update <- function() {
 tweets_bot <-
   xengagement::retrieve_tweets(
     user = 'punditratio',
@@ -113,7 +112,7 @@ res_preds <-
     path %>% 
     readr::read_rds() %>% 
     dplyr::rename_with(~sprintf('%s_pred', stem), .cols = c(.pred)) %>% 
-    dplyr::select(-dplyr::matches('_log$')) %>% 
+    dplyr::select(-dplyr::matches('_trans$')) %>% 
     dplyr::mutate(
       !!col_res_sym := !!dplyr::sym(sprintf('%s_count', stem)) - !!col_pred_sym,
     ) %>% 
@@ -234,7 +233,6 @@ preds_by_team <-
   dplyr::left_join(preds %>% dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text, dplyr::matches('^total_diff')))
 preds_by_team
 
-
 cols_x <- 
   dplyr::tibble(
     lab = c(cols_lst$cols_x_names, 'Baseline'),
@@ -345,6 +343,7 @@ res_generate <-
       tweets = tweets_bot,
       in_reply_to_tweets = tweets,
       # in_reply_to_status_id = ..2,
+      preds = preds,
       preds_long = preds_long,
       dir = dir_figs,
       dry_run = TRUE
@@ -352,8 +351,4 @@ res_generate <-
   ))
 
 .display_info('Successfully completed update at {Sys.time()}.')
-# return(invisible(TRUE))
-# }
 
-# print(paths_data_info[, c('mtime'), drop = FALSE])
-# do_update()

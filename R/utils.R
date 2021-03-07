@@ -11,7 +11,7 @@
 get_dir_data <- .get_dir_data
 
 #' @noRd
-do_getengagement_seed <- function() {
+.get_seed <- function() {
   getOption('xengagement.seed')
 }
 

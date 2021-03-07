@@ -82,7 +82,9 @@
         size = 4
       ) +
       ggplot2::geom_label(
-        data = preds_long_filt %>% dplyr::rowwise() %>% dplyr::mutate(x = max(pred * 1.1, pred + 100), y = x),
+        data = preds_long_filt %>%
+          dplyr::rowwise() %>% 
+          dplyr::mutate(x = max(pred * 1.15, pred + 200), y = x),
         ggplot2::aes(x = x, y = y, label = glue::glue('x{stem}: {scales::number(pred, accuracy = 1, big.mark = ",")}')),
         hjust = 0,
         vjust = 0,
