@@ -333,7 +333,7 @@ if(FALSE) {
 res_generate <-
   preds %>%
   dplyr::semi_join(
-    tweets_new %>% dplyr::select(status_id), by = 'status_id'
+    tweets_new %>% dplyr::select(status_id) %>% head(1), by = 'status_id'
   ) %>%
   tidyr::nest(data = -c(idx)) %>%
   dplyr::mutate(res = purrr::map(

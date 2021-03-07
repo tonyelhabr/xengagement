@@ -8,6 +8,7 @@ generate_tweet(
   pred,
   tweets,
   in_reply_to_tweets,
+  preds,
   preds_long,
   ...,
   prelude = NULL,
@@ -22,6 +23,8 @@ generate_tweet(
 \item{tweets}{Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.}
 
 \item{in_reply_to_tweets}{Tweets of the user for whom a tweets will be made in reply to (xGPhilosophy by default). Needed for identifying the tweet to reply to.}
+
+\item{preds}{Predictions with at least \code{team_h}, \code{team_a}, \verb{\{stem\}_count}.}
 
 \item{preds_long}{Tidy predictions with at least five columns \code{status_id}, \code{stem} (either favorite or retweet), \code{pred}, and \code{count}. This will be used to generate a plot to accompany the tweet.}
 

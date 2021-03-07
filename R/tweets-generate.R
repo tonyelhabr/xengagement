@@ -13,7 +13,6 @@
     now <- lubridate::now(tzone = 'UTC')
     n_minute_delay <- .get_n_minute_delay()
     
-    # browser()
     in_reply_to_tweets_filt_init <-
       in_reply_to_tweets %>% 
       dplyr::filter(status_id == !!status_id) %>% 
@@ -44,8 +43,9 @@
     # Check that xGPhilosophy made the tweet recently
     in_reply_to_tweets_filt <-
       in_reply_to_tweets_filt_init %>% 
-      dplyr::filter(min_diff <= n_minute_delay)
+      dplyr::filter(min_diff <= n_minute_lookback)
     n_row <- nrow(in_reply_to_tweets_filt)
+
     suffix <- sprintf('%s minute%s', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
     if(n_row == 0L) {
       .display_info('Tweet will not be made (for `status_id = "{status_id}"`) since the corresponding tweet was made beyond {suffix} ago{suffix2}.')
