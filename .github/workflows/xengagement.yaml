@@ -6,7 +6,7 @@ on:
 
 jobs:
   data-update:
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     env:
       TWITTER_APP: ${{ secrets.TWITTER_APP }}
       TWITTER_CONSUMER_API_KEY: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
