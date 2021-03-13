@@ -228,9 +228,15 @@ preds_long <-
 }
 
 preds_by_team <-
-  dplyr::bind_rows(.f_select('a'), .f_select('h')) %>% 
-  dplyr::left_join(preds %>% dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text, dplyr::matches('^total_diff')))
-preds_by_team
+  dplyr::bind_rows(.f_select('a'), .f_select('h')) %>%
+  dplyr::left_join(
+    preds %>% 
+      dplyr::select(
+        dplyr::all_of(cols_lst$cols_id),
+        lab_text,
+        dplyr::matches('^total_diff')
+      )
+  )
 
 cols_x <- 
   dplyr::tibble(
@@ -305,7 +311,6 @@ shap <-
   ) %>% 
   dplyr::filter(feature != 'baseline') %>% 
   dplyr::arrange(dplyr::all_of(cols_lst$cols_id), feature)
-shap
 
 shap_id_cols <- c(cols_lst$cols_id, 'lab')
 shap_long <-
@@ -318,7 +323,6 @@ shap_long <-
   ) %>% 
   dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
   dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
-shap_long
 
 .export_csv(preds)
 .export_csv(preds_by_team)
