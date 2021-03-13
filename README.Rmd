@@ -22,13 +22,13 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-`{xengagement}` is a package.
+`{xengagement}` is a package that predicts the amount of Twitter engagement that [xGPhilosophy](https://twitter.com/xGPhilosophy) receives with its end-of-match xG summary tweets. The predictions are shared with automated tweets made by [a bot](https://twitter.com/punditratio), occasionally including some manually inserted commentary :grinning:.
 
 ## Installation
 
 You can install the development version of `{xengagement}` from [GitHub](https://github.com/) with:
 
-```{r }
+```{r eval=F}
 # install.packages('remotes')
 remotes::install_github('tonyelhabr/xengagement')
 ```
