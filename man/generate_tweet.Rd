@@ -10,8 +10,10 @@ generate_tweet(
   in_reply_to_tweets,
   preds,
   preds_long,
+  shap_long,
   ...,
   prelude = NULL,
+  appendix = NULL,
   user = .get_user_bot(),
   dry_run = TRUE,
   delete_plot = !dry_run
@@ -28,7 +30,11 @@ generate_tweet(
 
 \item{preds_long}{Tidy predictions with at least five columns \code{status_id}, \code{stem} (either favorite or retweet), \code{pred}, and \code{count}. This will be used to generate a plot to accompany the tweet.}
 
+\item{shap_long}{Tidy SHAP values with at least four columns \code{status_id}, \code{stem} (either favorite or retweet), \code{lab}, and \code{shap_value}. This will be used to generate a plot to accompany the tweet.}
+
 \item{...}{Extra parameters passed to .\code{save_plot()}.}
+
+\item{prelude, appendix}{Extra text to add to beginning or end of auto-generated tweet.}
 
 \item{user}{Who is making the reply. (pundit_ratio by default.)}
 

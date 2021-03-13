@@ -33,26 +33,26 @@
       dplyr::filter(min_diff >= n_minute_delay)
     n_row <- nrow(in_reply_to_tweets_filt)
     suffix <- sprintf('%s minute%s', n_minute_delay, ifelse(n_minute_delay > 1L, 's', ''))
-
+    
     if(n_row == 0L) {
       .display_info('Tweet will not be made (for `status_id = "{status_id}"`) since the corresponding tweet was made within {suffix} ago{suffix2}.')
-      return(FALSE)
+      return(list(should_tweet = FALSE, show_preview = TRUE))
     }
     
     n_minute_lookback <- .get_n_minute_lookback()
-    # Check that xGPhilosophy made the tweet recently
+    # Check that xGPhilosophy make the tweet within the last `n_minute_lookback` minutes. We want to cap the lag time so that we aren't making a reply to a tweet days ago.
     in_reply_to_tweets_filt <-
       in_reply_to_tweets_filt_init %>% 
       dplyr::filter(min_diff <= n_minute_lookback)
     n_row <- nrow(in_reply_to_tweets_filt)
-
+    
     suffix <- sprintf('%s minute%s', n_minute_lookback, ifelse(n_minute_lookback > 1L, 's', ''))
     if(n_row == 0L) {
       .display_info('Tweet will not be made (for `status_id = "{status_id}"`) since the corresponding tweet was made beyond {suffix} ago{suffix2}.')
-      return(FALSE)
+      return(list(should_tweet = FALSE, show_preview = FALSE))
     }
     
-    # # NOTE: Could do something here where the bot is limited to a certain number of tweets per minute.  
+    # # Could do something here where the bot is limited to a certain number of tweets per minute.  
     # tweets_filt <-
     #   tweets %>% 
     #   dplyr::filter(created_at >= (!!now - lubridate::minutes(1)))
@@ -72,7 +72,7 @@
     suffix <- glue::glue('matching `status_id = "{status_id}"` in the past {suffix}.')
     if(is_null | n_row == 0L) {
       .display_info('No tweets from `in_reply_to_user = "{in_reply_to_user}"` {suffix}')
-      return(FALSE)
+      return(list(should_tweet = FALSE, show_preview = FALSE))
     }
     
     # Check that the bot hasn't made a reply tweet already.
@@ -83,10 +83,10 @@
     n_row <- nrow(tweets_filt)
     if(!is_null & n_row > 0L) {
       .display_info('`user = "{user}"` already tweeted something {suffix}')
-      return(FALSE)
+      return(list(should_tweet = FALSE, show_preview = FALSE))
     }
     
-    return(TRUE)
+    list(should_tweet = TRUE, show_preview = TRUE)
   }
 
 #' @noRd
@@ -109,7 +109,9 @@
 #' @param tweets Tweets of the user (punditratio by default) who will be making a reply. Needed to check that a tweet hasn't already been made.
 #' @param preds Predictions with at least `team_h`, `team_a`, `{stem}_count`.
 #' @param preds_long Tidy predictions with at least five columns `status_id`, `stem` (either favorite or retweet), `pred`, and `count`. This will be used to generate a plot to accompany the tweet.
+#' @param shap_long Tidy SHAP values with at least four columns `status_id`, `stem` (either favorite or retweet), `lab`, and `shap_value`. This will be used to generate a plot to accompany the tweet.
 #' @param ... Extra parameters passed to .`save_plot()`.
+#' @param prelude,appendix Extra text to add to beginning or end of auto-generated tweet.
 #' @param user Who is making the reply. (pundit_ratio by default.)
 #' @param dry_run Whether or not to actually make a tweet.
 #' @export
@@ -120,14 +122,16 @@ generate_tweet <-
            in_reply_to_tweets,
            preds,
            preds_long,
+           shap_long,
            ...,
            prelude = NULL,
+           appendix = NULL,
            user = .get_user_bot(),
            dry_run = TRUE,
            delete_plot = !dry_run) {
-    # TODO: Just use `status_id` here?
+    
     status_id <- pred$status_id
-    should_tweet <-
+    res_should_tweet <-
       .check_before_tweeting(
         # text = pred$text,
         status_id = status_id,
@@ -135,9 +139,13 @@ generate_tweet <-
         in_reply_to_tweets = in_reply_to_tweets
       )
     suffix <- glue::glue('on behalf of `user = "{user}"`')
-    if (!should_tweet) {
-      .display_info('Not making a tweet {suffix}.')
-      return(NULL)
+    if (!res_should_tweet$should_tweet) {
+      if (!res_should_tweet$show_preview) {
+        .display_info('Not making a tweet {suffix}.')
+        return(NULL)
+      } else {
+        # .display_info('Preview for a tweet {suffix}.')
+      }
     }
     
     if(!is.null(prelude)) {
@@ -147,6 +155,15 @@ generate_tweet <-
     } else {
       prelude <- ''
     }
+    
+    if(!is.null(appendix)) {
+      appendix <- glue::glue('
+      {appendix}
+      ')
+    } else {
+      appendix <- ''
+    }
+    
     
     team_h <- pred$team_h
     pred_h <-
@@ -171,7 +188,8 @@ generate_tweet <-
     team_ah <- ifelse(a_is_home, pred_a$team_a, pred_a$team_h)
     
     text <- glue::glue('
-    {prelude}xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
+    {prelude}@xGPhilosophy\'s xEngagment
+    xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
     Last match for {team_h} ({sign_h} {team_ha} on {lubridate::date(pred_h$created_at)}):
@@ -180,12 +198,14 @@ generate_tweet <-
     
     Last match for {team_a} ({sign_a} {team_ah} on {lubridate::date(pred_a$created_at)}):
     # of Favorites: {.f_number(pred_a$favorite_count)}
-    # of Retweets: {.f_number(pred_a$retweet_count)} 
+    # of Retweets: {.f_number(pred_a$retweet_count)}{appendix}
     ')
     
-    path_png <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
+    path_png_preds <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
+    path_png_shap <- .plot_shap(shap_long = shap_long, status_id = pred$status_id, ...)
     if(delete_plot) {
-      on.exit(file.remove(path_png), add = FALSE)
+      on.exit(file.remove(path_png_preds), add = FALSE)
+      on.exit(file.remove(path_png_shap), add = FALSE)
     }
     
     if(dry_run) {
@@ -196,10 +216,17 @@ generate_tweet <-
     if(interactive()) {
       clipr::write_clip(text)
     }
+    if(!res_should_tweet$should_tweet) {
+      .display_info('Would have made the following tweet {suffix} if not for a time filter not being satisfied: 
+                    {text}')
+      return(NULL)
+    }
+    # browser()
     rtweet::post_tweet(
       status = text,
       in_reply_to_status_id = pred$status_id,
-      media = path_png
+      # media = c(path_png_preds, path_png_shap)
+      media = path_png_shap
     )
   }
 

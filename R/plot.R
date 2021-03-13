@@ -11,6 +11,7 @@
   ggplot2::theme_minimal() +
     ggplot2::theme(
       ...,
+      plot.title.position = 'plot',
       title = ggplot2::element_text(size = base_size, color = 'gray20'),
       plot.title = ggplot2::element_text(face = 'bold', size = base_size, color = 'gray20'),
       axis.text = ggplot2::element_text(size = base_size),
@@ -84,7 +85,7 @@
       ggplot2::geom_label(
         data = preds_long_filt %>%
           dplyr::rowwise() %>% 
-          dplyr::mutate(x = max(pred * 1.15, pred + 200), y = x),
+          dplyr::mutate(x = max(pred * 1.1, pred + 100), y = x),
         ggplot2::aes(x = x, y = y, label = glue::glue('x{stem}: {scales::number(pred, accuracy = 1, big.mark = ",")}')),
         hjust = 0,
         vjust = 0,
@@ -105,6 +106,19 @@
     path
   }
 
+.reorder_within <- function (x, by, within, fun = mean, sep = '___', ...) {
+  if (!is.list(within)) {
+    within <- list(within)
+  }
+  new_x <- do.call(paste, c(list(x, sep = sep), within))
+  stats::reorder(new_x, by, FUN = fun)
+}
+
+.scale_y_reordered <- function (..., sep = '___') {
+    reg <- paste0(sep, '.+$')
+    ggplot2::scale_y_discrete(labels = function(x) gsub(reg, '', x), ...)
+  }
+
 .plot_shap <- 
   function(preds_long, 
            status_id,
@@ -119,12 +133,42 @@
     path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     path_exists <- path %>% file.exists()
     
-    shap_filt <-
-      shap %>% 
+    shap_long_filt <-
+      shap_long %>% 
       dplyr::filter(status_id == !!status_id)
-    n_row <- nrow(shap_filt)
+    n_row <- nrow(shap_long_filt)
     if(n_row == 0L) {
       .display_error('Filtered data should have >0 rows.')
     }
     
+    shap_long_filt <-
+      shap_long_filt %>% 
+      dplyr::mutate(sign = ifelse(shap_value > 0, 'pos', 'neg')) %>% 
+      dplyr::group_by(stem) %>% 
+      dplyr::mutate(rnk = dplyr::row_number(dplyr::desc(abs(shap_value)))) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::filter(rnk <= 10L)
+    
+    viz <-
+      shap_long_filt %>% 
+      ggplot2::ggplot() +
+      ggplot2::aes(y = .reorder_within(lab, shap_value, stem), x = shap_value) +
+      ggplot2::geom_col(ggplot2::aes(fill = sign), show.legend = FALSE) +
+      .scale_y_reordered() +
+      ggplot2::scale_fill_manual(values = c('neg' = '#7a5193', 'pos' = '#ef5675')) +
+      .theme(base_size = 12) +
+      ggplot2::theme(
+        plot.title.position = 'plot',
+        axis.text.x = ggplot2::element_blank(),
+        axis.title.x = ggplot2::element_blank(),
+        panel.grid.major.y = ggplot2::element_blank()
+      ) +
+      ggplot2::facet_wrap(~stem, scales = 'free') +
+      ggplot2::labs(
+        title = '10 Most Important Factors for xEngagement',
+        y = NULL,
+        x = 'mean(|SHAP value|)'
+      )
+    f_export(viz, path)
+    path
   }

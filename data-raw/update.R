@@ -85,7 +85,6 @@ tweets <-
 
 tweets_transformed <- tweets %>% transform_tweets(train = FALSE)
 .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
-tweets_transformed
 
 res_preds <-
   dplyr::tibble(
@@ -258,7 +257,6 @@ tweets_rescaled_long <-
     -c(cols_lst$cols_id)
   ) %>% 
   dplyr::as_tibble()
-tweets_rescaled_long
 
 .f_import_shap <- function(stem) {
   path <- .path_data_rds(file = sprintf('shap_%s', stem))
@@ -309,31 +307,27 @@ shap <-
   dplyr::arrange(dplyr::all_of(cols_lst$cols_id), feature)
 shap
 
+shap_id_cols <- c(cols_lst$cols_id, 'lab')
+shap_long <-
+  shap %>% 
+  dplyr::select(dplyr::all_of(shap_id_cols), dplyr::matches('_shap_value$')) %>% 
+  tidyr::pivot_longer(
+    -dplyr::all_of(shap_id_cols),
+    names_to = 'stem',
+    values_to = 'shap_value'
+  ) %>% 
+  dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
+  dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
+shap_long
+
 .export_csv(preds)
 .export_csv(preds_by_team)
 .export_csv(shap)
 
-# UPDATE: Fixed, but not currently using the outputs, so don't run for now.
-if(FALSE) {
-  # This is a valid way as well. It just isn't as clear what's going on.
-  # res_screenshot <- preds %>% xengagement::screenshot_latest_tweet(dir = dir_figs)
-  latest_tweet <- preds %>% dplyr::slice_max(created_at, with_ties = FALSE)
-  .f_screenshot <- 
-    purrr::partial(
-      xengagement::screenshot_latest_tweet, 
-      dir = dir_figs,
-      ... = 
-    )
-  res_screenshot <- .f_screenshot(status_id = latest_tweet$status_id)
-  
-  latest_tweet_bot <- tweets_bot %>% dplyr::slice_max(created_at, with_ties = FALSE)
-  res_screenshot_bot <- .f_screenshot(status_id = latest_tweet_bot$status_id)
-}
-
 res_generate <-
   preds %>%
   dplyr::semi_join(
-    tweets_new %>% dplyr::select(status_id) %>% head(1), by = 'status_id'
+    tweets_new %>% dplyr::select(status_id), by = 'status_id'
   ) %>%
   tidyr::nest(data = -c(idx)) %>%
   dplyr::mutate(res = purrr::map(
@@ -342,11 +336,12 @@ res_generate <-
       pred = .x,
       tweets = tweets_bot,
       in_reply_to_tweets = tweets,
-      # in_reply_to_status_id = ..2,
       preds = preds,
       preds_long = preds_long,
+      shap_long = shap_long,
       dir = dir_figs,
-      dry_run = TRUE
+      # delete_plot = TRUE,
+      dry_run = FALSE
     )
   ))
 
