@@ -227,8 +227,8 @@ generate_tweet <-
     }
     # browser()
     rtweet::post_tweet(
-      status = text # ,
-      # in_reply_to_status_id = pred$status_id,
+      status = text,
+      in_reply_to_status_id = pred$status_id,
       # media = c(path_png_preds, path_png_shap)
       # media = path_png_shap
     )
