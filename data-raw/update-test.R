@@ -297,7 +297,7 @@ res_generate <-
     dir = dir_figs,
     # delete_plot = TRUE,
     dry_run = FALSE,
-    override = FALSE
+    override = TRUE
   )
 
 .display_info('Successfully completed update at {Sys.time()}.')
