@@ -59,8 +59,18 @@ get_valid_stems <- function() {
 }
 
 #' @noRd
-.get_valid_suffixes <- function() {
+.get_valid_sides <- function() {
   c('h', 'a')
+}
+
+#' @noRd
+.validate_side <- function(x = .get_valid_sides(), ...) {
+  match.arg(x, ...)
+}
+
+#' @noRd
+.get_valid_suffixes <- function() {
+  c('w', 'l')
 }
 
 #' @noRd

@@ -1,5 +1,4 @@
 
-# setup ----
 library(xengagement)
 # library(tweetrmd)
 
@@ -198,33 +197,6 @@ preds_long <-
   tidyr::pivot_wider(names_from = 'what', values_from = 'value') %>% 
   dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x))))
 
-# For by team viz.
-.f_select <- function(suffix) {
-  preds %>%
-    dplyr::select(
-      idx,
-      status_id,
-      created_at,
-      team = !!dplyr::sym(sprintf('team_%s', suffix)),
-      favorite_count,
-      retweet_count,
-      favorite_pred,
-      retweet_pred
-    ) %>%
-    dplyr::mutate(side = !!suffix)
-}
-
-preds_by_team <-
-  dplyr::bind_rows(.f_select('a'), .f_select('h')) %>%
-  dplyr::left_join(
-    preds %>% 
-      dplyr::select(
-        dplyr::all_of(cols_lst$cols_id),
-        lab_text,
-        dplyr::matches('^total_diff')
-      )
-  )
-
 cols_x <- 
   dplyr::tibble(
     lab = c(cols_lst$cols_x_names, 'Baseline'),
@@ -311,30 +283,23 @@ shap_long <-
   dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
   dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
 
-.export_csv(preds)
-.export_csv(preds_by_team)
-.export_csv(shap)
+tweet_new <- tweets_new %>% dplyr::select(status_id) %>% dplyr::slice(8)
+pred_new <- preds %>% dplyr::semi_join(tweet_new)
+pred_new
+tweet_new
 
 res_generate <-
-  preds %>%
-  dplyr::semi_join(
-    tweets_new %>% dplyr::select(status_id), by = 'status_id'
-  ) %>%
-  tidyr::nest(data = -c(idx)) %>%
-  dplyr::mutate(res = purrr::map(
-    data,
-    ~ xengagement::generate_tweet(
-      pred = .x,
-      tweets = tweets_bot,
-      in_reply_to_tweets = tweets,
-      preds = preds,
-      preds_long = preds_long,
-      shap_long = shap_long,
-      dir = dir_figs,
-      # delete_plot = TRUE,
-      dry_run = T
-    )
-  ))
+  xengagement::generate_tweet(
+    pred = pred_new,
+    tweets = tweets_bot,
+    in_reply_to_tweets = tweets,
+    preds = preds,
+    preds_long = preds_long,
+    shap_long = shap_long,
+    dir = dir_figs,
+    # delete_plot = TRUE,
+    dry_run = FALSE,
+    override = TRUE
+  )
 
 .display_info('Successfully completed update at {Sys.time()}.')
-

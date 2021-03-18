@@ -54,7 +54,7 @@ do_fit <-
     data <- data %>% tidyr::drop_na(!!col_y_sym)
     
     x_mat <- data %>% dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% .df2mat()
-    browser()
+
     # TODO: Make these package options?
     nrounds <- 2000
     booster <- 'gbtree'

@@ -12,23 +12,23 @@
 #' @noRd
 .add_estimated_follower_count_col <-
   function(data,
-           suffix = .get_valid_suffixes(),
+           side = .get_valid_sides(),
            latest_date,
            train = TRUE,
            retrieve = !train) {
-    .validate_suffix(suffix)
-    col_created_at_sym <- sprintf('created_at_%s', suffix) %>% sym()
-    col_diff <- sprintf('date_diff_%s', suffix)
+    .validate_side(side)
+    col_created_at_sym <- sprintf('created_at_%s', side) %>% sym()
+    col_diff <- sprintf('date_diff_%s', side)
     col_diff_sym <- col_diff %>% sym()
     col_diff_latest_sym <- sprintf('%s_latest', col_diff) %>% sym()
     col_followers_count_sym <-
-      sprintf('followers_count_%s', suffix) %>% sym()
+      sprintf('followers_count_%s', side) %>% sym()
     col_res_sym <-
-      sprintf('estimated_followers_count_%s', suffix) %>% sym()
+      sprintf('estimated_followers_count_%s', side) %>% sym()
     
     if (!train & retrieve) {
       
-      teams_distinct <- data %>% .distinct12_at(col = 'team', suffix = .get_valid_suffixes())
+      teams_distinct <- data %>% .distinct12_at(col = 'team', suffix = .get_valid_sides())
       users <-
         team_accounts_mapping %>% 
         dplyr::semi_join(teams_distinct, by = 'team') %>% 
@@ -49,12 +49,11 @@
       team_accounts_mapping <- team_accounts_mapping %>% dplyr::select(-user_id)
     }
     
-    team_col <- sprintf('team_%s', suffix)
-    # suppressMessages(
+    team_col <- sprintf('team_%s', side)
     res <-
       data %>%
       dplyr::inner_join(
-        team_accounts_mapping %>% dplyr::rename_all( ~ sprintf('%s_%s', .x, suffix)),
+        team_accounts_mapping %>% dplyr::rename_all( ~ sprintf('%s_%s', .x, side)),
         by = team_col
       ) %>%
       dplyr::mutate(
@@ -68,7 +67,6 @@
         -!!col_created_at_sym,
         -!!col_followers_count_sym
       )
-    # )
     res
   }
 
@@ -81,16 +79,16 @@
 }
 
 #' @noRd
-.fix_team_col <- function(data, suffix = .get_valid_suffixes()) {
+.fix_team_col <- function(data, side = .get_valid_sides()) {
   # browser()
-  .validate_suffix(suffix)
-  col_team_sym <- sprintf('team_%s', suffix) %>% sym()
-  col_team_correct_sym <- sprintf('team_correct_%s', suffix) %>% sym()
+  .validate_side(side)
+  col_team_sym <- sprintf('team_%s', side) %>% sym()
+  col_team_correct_sym <- sprintf('team_correct_%s', side) %>% sym()
   # team_corrections <- .get_team_corrections()
-  team_col <- sprintf('team_%s', suffix)
+  team_col <- sprintf('team_%s', side)
   data %>% 
     dplyr::left_join(
-      team_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, suffix)),
+      team_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, side)),
       by = team_col
     ) %>% 
     dplyr::mutate(
@@ -228,21 +226,36 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       .add_estimated_follower_count_cols(latest_date = latest_date, train = train) %>%  # , ...) %>% 
       .add_cols_538() %>% 
       dplyr::mutate(
+        team_xg_w = dplyr::if_else(xg_h > xg_a, team_h, team_a),
+        xg_w = dplyr::if_else(team_xg_w == team_h, xg_h, xg_a),
+        xg_l = dplyr::if_else(team_xg_w == team_h, xg_a, xg_h),
+        g_w = dplyr::if_else(team_xg_w == team_h, g_h, g_a),
+        g_l = dplyr::if_else(team_xg_w == team_h, g_a, g_h),
+        proj_score_538_w = dplyr::if_else(team_xg_w == team_h, proj_score_538_h, proj_score_538_a),
+        proj_score_538_l = dplyr::if_else(team_xg_w == team_h, proj_score_538_a, proj_score_538_h),
+        spi_538_w = dplyr::if_else(team_xg_w == team_h, spi_538_h, spi_538_a),
+        spi_538_l = dplyr::if_else(team_xg_w == team_h, spi_538_a, spi_538_h),
+        importance_538_w = dplyr::if_else(team_xg_w == team_h, importance_538_h, importance_538_a),
+        importance_538_l = dplyr::if_else(team_xg_w == team_h, importance_538_a, importance_538_h),
+        xgd_w2l = xg_w - xg_l,
+        gd_w2l = g_w - g_l,
+        proj_score_538_w2l = proj_score_538_w - proj_score_538_l,
+        d_w2l = xgd_w2l - gd_w2l,
         # is_gt_h = dplyr::if_else(xg_h - g_h > 0, 1L, 0L),
         # is_gt_a = dplyr::if_else(xg_a - g_a > 0, 1L, 0L),
-        xgd_h2a = xg_h - xg_a,
-        gd_h2a = g_h - g_a,
-        proj_score_538_h2a = proj_score_538_h - proj_score_538_a,
+        # xgd_h2a = xg_h - xg_a,
+        # gd_h2a = g_h - g_a,
+        # proj_score_538_h2a = proj_score_538_h - proj_score_538_a,
         # d_agree_h2a = 
         #   dplyr::case_when(
         #     xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
         #     xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
         #     TRUE ~ 0L
         #   ),
-        d_h2a = xgd_h2a - gd_h2a # ,
+        # d_h2a = xgd_h2a - gd_h2a # ,
         # team_xg_w = dplyr::if_else(xg_h > xg_a, team_h, team_a)
-        # estimated_follower_count_w = ifelse(team_xg_w == team_h, team_h, team_a),
-        # estimated_follower_count_l = ifelse(team_xg_w == team_h, team_a, team_h)
+        estimated_followers_count_w = dplyr::if_else(team_xg_w == team_h, estimated_followers_count_h, estimated_followers_count_a),
+        estimated_followers_count_l = dplyr::if_else(team_xg_w == team_h, estimated_followers_count_a, estimated_followers_count_h)
       ) %>% 
       # Don't keep games where neither side's followers can be estimated.
       # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
@@ -268,13 +281,12 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   #   rec %>% 
   #   recipes::prep() %>% 
   #   recipes::bake(new_data = res_proc)
-  # browser()
   
-  .f_distinct <- function(suffix = .get_valid_suffixes()) {
+  .f_distinct <- function(side = .get_valid_sides()) {
     # res_trans %>% 
     res_proc %>% 
       dplyr::distinct(
-        team = !!sym(sprintf('team_%s', suffix)), 
+        team = !!sym(sprintf('team_%s', side)), 
         created_at, 
         favorite_count, 
         retweet_count
@@ -286,6 +298,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   res_lag <-
     res_grps %>% 
     dplyr::group_by(team) %>% 
+    dplyr::arrange(created_at, .by_group = TRUE) %>% 
     dplyr::mutate(
       dplyr::across(
         dplyr::matches('^(favorite|retweet)_count$'),
@@ -295,30 +308,35 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       )
     ) %>% 
     dplyr::ungroup()
-  res_lag
-  
-  .f_join_rename <- function(data, suffix = .get_valid_suffixes()) {
+
+  .f_join_rename <- function(data, side = .get_valid_sides()) {
     data %>% 
       dplyr::left_join(
         res_lag %>% 
           dplyr::rename_with(
-            ~sprintf('%s_%s', .x, suffix),
+            ~sprintf('%s_%s', .x, side),
             -c(created_at)
           ),
-        by = c('created_at', sprintf('team_%s', suffix))
+        by = c('created_at', sprintf('team_%s', side))
       )
   }
   
+
   res <-
     # res_trans %>% 
     res_proc %>% 
     .f_join_rename('h') %>% 
-    .f_join_rename('a')
+    .f_join_rename('a') %>% 
+    dplyr::mutate(
+      favorite_count_lag1_w = dplyr::if_else(team_xg_w == team_h, favorite_count_lag1_h, favorite_count_lag1_a),
+      favorite_count_lag1_l = dplyr::if_else(team_xg_w == team_h, favorite_count_lag1_a, favorite_count_lag1_h),
+      retweet_count_lag1_w = dplyr::if_else(team_xg_w == team_h, retweet_count_lag1_h, retweet_count_lag1_a),
+      retweet_count_lag1_l = dplyr::if_else(team_xg_w == team_h, retweet_count_lag1_a, retweet_count_lag1_h)
+    )
   
 
   # if(train) {
   # Getting weird error without .data$idx
-  .power <- 2
   res <-
     res %>% 
     dplyr::mutate(
@@ -326,13 +344,13 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         dplyr::matches('^(favorite|retweet)_count$'),
         list(prnk = ~dplyr::percent_rank(.x))
       ),
-      wt1_favorite = dplyr::percent_rank(favorite_count_prnk)^.power,
-      wt1_retweet = dplyr::percent_rank(retweet_count_prnk)^.power,
-      wt.power = dplyr::percent_rank(.data$idx)^.power,
-      wt_favorite = dplyr::percent_rank(wt1_favorite + wt.power)^.power,
-      wt_retweet = dplyr::percent_rank(wt1_retweet + wt.power)^.power
+      wt1_favorite = dplyr::percent_rank(favorite_count_prnk)^2,
+      wt1_retweet = dplyr::percent_rank(retweet_count_prnk)^2,
+      wt2 = dplyr::percent_rank(.data$idx)^2,
+      wt_favorite = dplyr::percent_rank(wt1_favorite + wt2)^2,
+      wt_retweet = dplyr::percent_rank(wt1_retweet + wt2)^2
     ) %>% 
-    dplyr::select(-dplyr::matches('^wt[1.power].*')) %>% 
+    dplyr::select(-dplyr::matches('^wt[12].*')) %>% 
     dplyr::relocate(idx, dplyr::matches('^wt_'))
   # }
   

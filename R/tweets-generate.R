@@ -114,6 +114,8 @@
 #' @param prelude,appendix Extra text to add to beginning or end of auto-generated tweet.
 #' @param user Who is making the reply. (pundit_ratio by default.)
 #' @param dry_run Whether or not to actually make a tweet.
+#' @param delete_plot Whether or not to delete plots made and attached to tweet.
+#' @param override Whether or not to override time filtering criteria (useful for testing).
 #' @export
 #' @rdname generate_tweet
 generate_tweet <-
@@ -128,7 +130,8 @@ generate_tweet <-
            appendix = NULL,
            user = .get_user_bot(),
            dry_run = TRUE,
-           delete_plot = !dry_run) {
+           delete_plot = !dry_run,
+           override = FALSE) {
     
     status_id <- pred$status_id
     res_should_tweet <-
@@ -139,9 +142,9 @@ generate_tweet <-
         in_reply_to_tweets = in_reply_to_tweets
       )
     suffix <- glue::glue('on behalf of `user = "{user}"`')
-    if (!res_should_tweet$should_tweet) {
+    if (!res_should_tweet$should_tweet & !override) {
       if (!res_should_tweet$show_preview) {
-        .display_info('Not making a tweet {suffix}.')
+        .display_info('Not making a tweet {suffix} for `status_id = "{status_id}"` ("{pred$lab_text}").')
         return(NULL)
       } else {
         # .display_info('Preview for a tweet {suffix}.')
@@ -164,7 +167,7 @@ generate_tweet <-
       appendix <- ''
     }
     
-    
+    # TODO: Make a function for this.
     team_h <- pred$team_h
     pred_h <-
       preds %>% 
@@ -186,17 +189,18 @@ generate_tweet <-
     a_is_home <- team_a == pred_a$team_h
     sign_a <- ifelse(a_is_home, 'vs.', '@')
     team_ah <- ifelse(a_is_home, pred_a$team_a, pred_a$team_h)
-    
+
+    # Note that we must mention the account that we are replying to in order to attch media
     text <- glue::glue('
     {prelude}@xGPhilosophy\'s xEngagment
     xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
     xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
-    Last match for {team_h} ({sign_h} {team_ha} on {lubridate::date(pred_h$created_at)}):
+    Last match for {team_h} ({sign_h} {team_ha}):
     # of Favorites: {.f_number(pred_h$favorite_count)}
     # of Retweets: {.f_number(pred_h$retweet_count)} 
     
-    Last match for {team_a} ({sign_a} {team_ah} on {lubridate::date(pred_a$created_at)}):
+    Last match for {team_a} ({sign_a} {team_ah}):
     # of Favorites: {.f_number(pred_a$favorite_count)}
     # of Retweets: {.f_number(pred_a$retweet_count)}{appendix}
     ')
@@ -208,7 +212,7 @@ generate_tweet <-
       on.exit(file.remove(path_png_shap), add = FALSE)
     }
     
-    if(dry_run) {
+    if(dry_run & !override) {
       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
                     {text}')
       return(NULL)
@@ -216,7 +220,7 @@ generate_tweet <-
     if(interactive()) {
       clipr::write_clip(text)
     }
-    if(!res_should_tweet$should_tweet) {
+    if(!res_should_tweet$should_tweet & !override) {
       .display_info('Would have made the following tweet {suffix} if not for a time filter not being satisfied: 
                     {text}')
       return(NULL)
@@ -225,8 +229,8 @@ generate_tweet <-
     rtweet::post_tweet(
       status = text,
       in_reply_to_status_id = pred$status_id,
-      # media = c(path_png_preds, path_png_shap)
-      media = path_png_shap
+      media = c(path_png_preds, path_png_shap)
+      # media = path_png_shap
     )
   }
 

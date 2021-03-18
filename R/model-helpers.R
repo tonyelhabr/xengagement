@@ -35,8 +35,10 @@
         suffix,
         list(
           lab = ~dplyr::case_when(
-            .x == 'a' ~ 'Away',
-            .x == 'h' ~ 'Home'
+            # .x == 'a' ~ 'Away',
+            # .x == 'h' ~ 'Home'
+            .x == 'w' ~ 'xG Winner',
+            .x == 'l' ~ 'xG Loser'
           )
         )
       ),
@@ -45,50 +47,50 @@
     ) %>% 
     dplyr::select(-dplyr::matches('_lab$'))
       
-  # NOT: Found that these time columns are among the least important, so taking them out.
-  cols_time <-
-    .generate_col(
-      prefix = c('hour', 'wday'),
-      suffix = c('x1', 'y1', 'x2', 'y2')
-    ) %>% 
-    dplyr::mutate(
-      dplyr::across(
-        prefix,
-        list(
-          lab = ~dplyr::case_when(
-            .x == 'hour' ~ 'Hour',
-            .x == 'wday' ~ 'Weekday'
-          )
-        )
-      ),
-      dplyr::across(
-        suffix,
-        list(
-          `1` = ~stringr::str_sub(.x, 1, -2),
-          `2` = ~stringr::str_sub(.x, 2, 2)
-        )
-      ),
-      dplyr::across(
-        suffix_1,
-        list(
-          lab = ~dplyr::case_when(
-            .x == 'x' ~ 'Sin',
-            .x == 'y' ~ 'Cos'
-          )
-        )
-      ),
-      dplyr::across(
-        suffix_2,
-        list(
-          lab = ~dplyr::case_when(
-            .x == '1' ~ '1st',
-            .x == '2' ~ '2nd'
-          )
-        )
-      ),
-      lab = sprintf('%s Order %s Term, %s', suffix_2_lab, suffix_1_lab, prefix_lab)
-    ) %>% 
-    dplyr::select(-dplyr::matches('_lab$'))
+  # # Found that these time columns are among the least important, so taking them out.
+  # cols_time <-
+  #   .generate_col(
+  #     prefix = c('hour', 'wday'),
+  #     suffix = c('x1', 'y1', 'x2', 'y2')
+  #   ) %>% 
+  #   dplyr::mutate(
+  #     dplyr::across(
+  #       prefix,
+  #       list(
+  #         lab = ~dplyr::case_when(
+  #           .x == 'hour' ~ 'Hour',
+  #           .x == 'wday' ~ 'Weekday'
+  #         )
+  #       )
+  #     ),
+  #     dplyr::across(
+  #       suffix,
+  #       list(
+  #         `1` = ~stringr::str_sub(.x, 1, -2),
+  #         `2` = ~stringr::str_sub(.x, 2, 2)
+  #       )
+  #     ),
+  #     dplyr::across(
+  #       suffix_1,
+  #       list(
+  #         lab = ~dplyr::case_when(
+  #           .x == 'x' ~ 'Sin',
+  #           .x == 'y' ~ 'Cos'
+  #         )
+  #       )
+  #     ),
+  #     dplyr::across(
+  #       suffix_2,
+  #       list(
+  #         lab = ~dplyr::case_when(
+  #           .x == '1' ~ '1st',
+  #           .x == '2' ~ '2nd'
+  #         )
+  #       )
+  #     ),
+  #     lab = sprintf('%s Order %s Term, %s', suffix_2_lab, suffix_1_lab, prefix_lab)
+  #   ) %>% 
+  #   dplyr::select(-dplyr::matches('_lab$'))
   
   cols_538 <-
     .generate_col(
@@ -108,13 +110,15 @@
           )
         )
       ),
-      dplyr::across(col, ~stringr::str_replace(.x, '_([ah])$', '_538_\\1')),
+      dplyr::across(col, ~stringr::str_replace(.x, '_([wl])$', '_538_\\1')),
       dplyr::across(
         suffix,
         list(
           lab = ~dplyr::case_when(
-            .x == 'a' ~ 'Away',
-            .x == 'h' ~ 'Home'
+            # .x == 'a' ~ 'Away',
+            # .x == 'h' ~ 'Home'
+            .x == 'w' ~ 'xG Winner',
+            .x == 'l' ~ 'xG Loser'
           )
         )
       ),
@@ -128,7 +132,7 @@
   
   cols_derived <-
     dplyr::tibble(
-      col = c('xgd_h2a', 'gd_h2a', 'd_h2a', 'proj_score_538_h2a'), # , 'd_agree_h2a'),
+      col = c('xgd_w2l', 'gd_w2l', 'd_w2l', 'proj_score_538_w2l'), # , 'd_agree_w2l'),
       lab = c('xG Difference', 'Goal Difference', 'xG-Goal Difference', 'Projected Goal Difference, 538') # , 'xG-G Difference Matches Result')
     )
   cols_derived
@@ -149,6 +153,7 @@
     ) %>% 
     purrr::reduce(dplyr::bind_rows)
   
+  sides <- .get_valid_sides()
   cols_lst <-
     list(
       col_y = sprintf('%s_count_trans', stem),
@@ -160,10 +165,11 @@
         'idx',
         'is_fresh',
         'status_id',
-        'text',
+        # 'text',
         'created_at',
-        'team_a',
-        'team_h',
+        sprintf('team_%s', sides),
+        sprintf('xg_%s', sides),
+        sprintf('g_%s', sides),
         cols_suffix$col,
         sprintf('%s_count', c('estimated_followers', stems))
       ),

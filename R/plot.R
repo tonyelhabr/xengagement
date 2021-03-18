@@ -37,6 +37,7 @@
            height = 4,
            width = 8,
            ...) {
+    path <- .generate_path(path = path, dir = dir, file = file, ext = ext)
     ggplot2::ggsave(
       plot = object,
       filename = path,

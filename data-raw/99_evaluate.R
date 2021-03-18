@@ -1,8 +1,48 @@
 
-# NOTE: A lot of this is similar to what is in the update script. Not sure if there is a good way to avoid duplication. This script is intended for adhoc purposes, such as looking at predictions for individual teams, computing MAPE, etc.
+# A lot of this is similar to what is in the update script. Not sure if there is a good way to avoid duplication. This script is intended for adhoc purposes, such as looking at predictions for individual teams, computing MAPE, etc.
 library(tidyverse)
 library(lubridate)
 library(xengagement)
+
+extrafont::loadfonts(device = 'win', quiet = TRUE)
+theme_set(theme_minimal())
+theme_update(
+  text = element_text(family = 'Karla'),
+  title = element_text('Karla', size = 14, color = 'gray20'),
+  plot.title = element_text('Karla', face = 'bold', size = 18, color = 'gray20'),
+  plot.title.position = 'plot',
+  plot.subtitle = element_text('Karla', face = 'bold', size = 14, color = 'gray50'),
+  axis.text = element_text('Karla', size = 14),
+  # axis.title = element_text(size = 24, face = 'bold'),
+  axis.title = element_text(size = 14, face = 'bold', hjust = 0.99),
+  # axis.text = element_text('Karla', size = 12, face = 'bold', color = 'gray20'),
+  # axis.title.x = element_text(hjust = 0.95),
+  # axis.title.y = element_text(hjust = 0.95),
+  # axis.line = element_line(color = 'gray80'),
+  axis.line = element_blank(),
+  panel.grid.major = element_line(color = 'gray80'),
+  panel.grid.minor = element_line(color = 'gray80'),
+  panel.grid.minor.x = element_blank(),
+  panel.grid.minor.y = element_blank(),
+  # plot.margin = margin(25, 25, 25, 25),
+  plot.margin = margin(10, 10, 10, 10),
+  # plot.background = element_rect(fill = '#F3F4F6', color = '#F3F4F6'),
+  plot.background = element_rect(fill = '#ffffff', color = NA),
+  # plot.caption = element_text(size = 15, face = 'italic'),
+  plot.caption = element_text('Karla', size = 14, color = 'gray20', hjust = 1),
+  plot.caption.position = 'plot',
+  plot.tag = ggtext::element_markdown('Karla', size = 12, color = 'gray20', hjust = 0), 
+  plot.tag.position = c(.01, 0.02),
+  # legend.text = element_text(size = 14),
+  legend.text = element_text(size = 14),
+  # legend.background = element_rect(fill = '#F3F4F6', color = '#F3F4F6'),
+  # legend.position = c(.85, .85))
+  strip.text = element_text(size = 18),
+  strip.background = element_blank(),
+  panel.background = element_rect(fill = '#ffffff', color = NA)
+)
+update_geom_defaults('text', list(family = 'Karla', size = 4))
+
 valid_stems <- get_valid_stems()
 .path_data_rds <- partial(.path_data, ext = 'rds', ... = )
 cols_lst <- get_cols_lst(valid_stems[1])
@@ -10,12 +50,32 @@ n_hour_fresh <- getOption('xengagement.n_hour_fresh')
 
 train <- TRUE
 token <- get_twitter_token()
-# method <- ifelse(train, 'all', 'since')
+method <- ifelse(train, 'all', 'since')
 # dir_data <- get_dir_data()
 # valid_stems <- get_valid_stems()
 
 tweets <- retrieve_tweets(method = method, token = token)
 tweets_transformed <- tweets %>% transform_tweets(train = train)
+
+# favorites vs retweets
+tweets_transformed %>% 
+  # select(matches('_count$')) %>% 
+  ggplot() + 
+  aes(x = favorite_count, y = retweet_count) + 
+  geom_point(aes(color = is_weekend %>% factor())) +
+  # scale_color_viridis() +
+  # scico::scale_color_scico_d() +
+  theme(legend.position = 'top') +
+  geom_smooth(method = 'lm', formula = formula(y ~ x + 0), se = FALSE)
+
+# followers_count <- tweets %>% slice(1) %>% pull(followers_count)
+# tweets_transformed %>% 
+#   ggplot() +
+#   aes(x = created_at, y = estimated_followers_count) +
+#   geom_point() +
+#   geom_point(aes(y = estimated_followers_count * (estimated_followers_count/!!followers_count)^2), color = 'red')
+
+# wts over time
 tweets_transformed %>% 
   select(idx, created_at, matches('^wt_')) %>% 
   pivot_longer(matches('^wt_')) %>% 
@@ -23,6 +83,7 @@ tweets_transformed %>%
   aes(x = created_at, y = value, color = name) + 
   geom_point()
 
+# wts vs count
 tweets_transformed %>% 
   select(idx, created_at, matches('^wt_'), matches('_count$')) %>% 
   pivot_longer(matches('^wt_'), names_to = 'wt_stem', values_to = 'wt') %>%
@@ -69,7 +130,6 @@ suppressMessages(
       matches('^(favorite|retweet)_')
     )
 )
-preds_init
 
 preds_init <-
   preds_init %>% 
@@ -77,20 +137,16 @@ preds_init <-
     lab_text =
       sprintf(
         '%s: %s (%.2f) %d-%d (%.2f) %s',
-        date(created_at),
-        # hour(created_at),
-        # wday(created_at, label = TRUE),
+        lubridate::date(created_at),
         team_h,
         xg_h,
         g_h,
         g_a,
         xg_a,
         team_a
-      ),
-    lab_hover = str_remove(lab_text, '^.*[:]\\s')
+      )
   ) %>% 
   arrange(idx)
-
 wt_favorite <- 0.5
 wt_retweet <- 0.5
 
@@ -98,15 +154,22 @@ now <- now()
 
 preds_filt <-
   preds_init %>%
-  filter(created_at <= (!!now - hours(n_hour_fresh))) 
-preds_filt
+  filter(created_at <= (!!now - lubridate::hours(n_hour_fresh))) 
 
-preds_filt %>% 
+metrics <-
+  preds_filt %>% 
   summarize(
-    mape_favorite = yardstick::mape_vec(favorite_count, favorite_pred),
+    mape_favorite = yardstick::mape_vec(favorite_count + 1, favorite_pred + 1),
     rmse_favorite = yardstick::rmse_vec(favorite_count, favorite_pred),
-    mape_favorite2 = mean(abs((favorite_count - favorite_pred) / favorite_count), na.rm = TRUE),
-  )
+    r2_favorite = yardstick::rsq_vec(favorite_count, favorite_pred),
+    # mape_favorite2 = mean(abs((favorite_count - favorite_pred) / favorite_count), na.rm = TRUE),
+    mape_retweet = yardstick::mape_vec(retweet_count + 1, retweet_pred + 1),
+    rmse_retweet = yardstick::rmse_vec(retweet_count, retweet_pred),
+    r2_retweet = yardstick::rsq_vec(retweet_count, retweet_pred)
+    # mape_retweet2 = mean(abs((retweet_count - retweet_pred) / retweet_count), na.rm = TRUE)
+  ) %>% 
+  pivot_longer(matches('.*'), names_to = 'metric', values_to = 'valule')
+metrics
 
 preds_agg <-
   preds_filt %>% 
@@ -144,18 +207,18 @@ preds <-
   arrange(total_diff_rnk)
 preds
 
-.f_select <- function(suffix) {
+.f_select <- function(side) {
   preds_init %>%
     select(
       idx,
       status_id,
-      team = !!sym(sprintf('team_%s', suffix)),
+      team = !!sym(sprintf('team_%s', side)),
       favorite_count,
       retweet_count,
       favorite_pred,
       retweet_pred
     ) %>%
-    mutate(side = !!suffix)
+    mutate(side = !!side)
 }
 
 preds_long <-
@@ -170,9 +233,11 @@ preds_long <-
   mutate(across(stem, ~ sprintf('%ss', .toupper1(.x))))
 preds_long
 
-library(tidyverse)
-preds_long %>% 
+# re-doing metrics, in a tidy-er way
+metrics <-
+  preds_long %>% 
   group_by(idx, stem) %>% 
+  # just one of the stems, not both (don't overcount)
   slice(1) %>% 
   ungroup() %>% 
   group_by(stem) %>% 
@@ -183,34 +248,177 @@ preds_long %>%
   ) %>% 
   ungroup() %>% 
   mutate(across(rmse, ~ifelse(stem == 'Retweets', .x * scaling_factor, .x)))
+metrics
 
-# teams_filt <- c('Man City', 'Liverpool', 'Chelsea', 'Man United', 'Arsenal', 'Tottenham')
-teams_filt <- 'Brighton'
-viz_preds <-
+# teams_ex <- c('Man City', 'Liverpool', 'Chelsea', 'Man United', 'Arsenal', 'Tottenham')
+
+colors <- team_mapping %>% pull(color_pri, team)
+status_id_ex <- '1309847833739231233'
+preds_ex <- preds %>% filter(status_id == !!status_id_ex)
+preds_long_ex <- preds_long %>% filter(status_id == !!status_id_ex)
+stopifnot(nrow(preds_x) == 1L)
+team_ex <- preds_ex$team_h
+team_ex_opp <- preds_ex$team_a
+teams_ex <- c(team_ex, team_ex_opp)
+lab_text_ex <- glue::glue('<b>{lubridate::date(preds_ex$created_at)}</b><br/><b><span style="color:{unname(colors[preds_ex$team_h])}">{preds_ex$team_h}</span></b>: {preds_ex$g_h} ({preds_ex$xg_h})<br/><b><span style="color:{unname(colors[preds_ex$team_a])}">{preds_ex$team_a}</span></b>: {preds_ex$g_a} ({preds_ex$xg_a})')
+lab_text_ex
+
+viz_preds_base <-
   preds_long %>% 
-  filter(!(team %in% teams_filt)) %>% 
   ggplot() +
   aes(x = pred, y = count) +
   geom_abline(aes(slope = 1, intercept = 0), size = 1, linetype = 2) +
-  geom_point(alpha = 1, color = 'grey80') +
+  # geom_point(alpha = 1, color = 'grey80') +
+  geom_point(aes(color = stem), alpha = 0.2, show.legend = FALSE) +
+  scale_color_manual(values = c('Favorites' = '#003f5c', 'Retweets' = '#ffa600')) +
+  facet_wrap(~stem, scales = 'free') +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(
+    title = '@xGPhilosophy Tweet Engagement',
+    tag = '**Viz**: @TonyElHabr',
+    x = 'Predicted', y = 'Actual'
+  )
+viz_preds_base
+
+.f_save_preds <- partial(.save_plot, height = 7, width = 7 * 1.618, type = 'cairo', ... = )
+.f_save_preds(viz_preds_base)
+
+.f_mark <- partial(
+  ggforce::geom_mark_circle,
+  label.family = 'Karla',
+  color = 'black',
+  ... = 
+)
+
+viz_preds_ex <-
+  viz_preds_base +
+  ggnewscale::new_scale_color() +
   geom_point(
-    data = preds_long %>% filter(team %in% teams_filt),
+    data = preds_long %>% filter(team %in% teams_ex) %>% filter(status_id != status_id_ex),
     aes(color = team),
-    show.legend = FALSE,
+    alpha = 1,
     size = 2,
     inherit.aes = TRUE
   ) +
-  scale_y_continuous(labels = scales::comma) +
-  scale_x_continuous(labels = scales::comma) +
-  facet_wrap(~stem, scales = 'free') +
-  .theme() +
-  # coord_equal() +
-  guides(color = guide_legend('')) +
-  labs(
-    title = 'xGPhilosophy Tweet Engagement',
-    x = 'Predicted', y = 'Actual'
+  scale_color_manual(values = colors) +
+  geom_point(
+    data = preds_long_ex %>% filter(team == !!team_ex),
+    color = 'black',
+    size = 5
+  ) +
+  .f_mark(
+    data = 
+      preds_ex %>% 
+      mutate(stem = 'Favorites'),
+    aes(x = favorite_pred, y = favorite_count, description = 'xFavorites model slightly under-forecasts number of favorites.'),
+    label.buffer = unit(0.3, 'npc'),
+    label.hjust = 0
+  ) +
+  .f_mark(
+    data = 
+      preds_ex %>% 
+      mutate(stem = 'Retweets'),
+    aes(x = retweet_pred, y = retweet_count, description = 'xRetweets model significantly under-forecasts number of retweets.'),
+    # label.fontsize = 10,
+    label.buffer = unit(0.5, 'npc'),
+    label.hjust = 1
+  ) +
+  ggtext::geom_richtext(
+    data = tibble(stem = 'Retweets'),
+    family = 'Karla',
+    label.color = NA,
+    hjust = 1,
+    size = 5,
+    aes(x = preds_ex$retweet_pred - 100, y = preds_ex$retweet_count, label = !!lab_text_ex)
+  ) +
+  # guides(color = guide_legend('', override.aes = list(size = 4, alpha = 1))) +
+  theme(
+    plot.caption = ggtext::element_markdown(size = 12),
+    legend.position = 'none'
+  ) +
+  labs()
+viz_preds_ex
+.f_save_preds(viz_preds_ex)
+
+library(gt)
+# Methods to get logos
+# Look at Tom Mocks' NFL function (https://github.com/jthomasmock/espnscrapeR/blob/master/R/get_nfl_teams.R), but change format to https://a.espncdn.com/i/teamlogos/soccer/500/360.png. the EPL teams have numbers associated with them instead of abbreviations, which makes this a pain in the ass.
+# Scrape from 538's table, which just scrapes from ESPN.
+preds %>% 
+  mutate(
+    date = lubridate::date(created_at),
+    rnk = row_number(-total_diff_prnk)
+  ) %>%
+  select(
+    date,
+    team_h,
+    team_a,
+    g_h,
+    g_a,
+    xg_h,
+    xg_a,
+    matches('(favorite|retweet)_(count|pred)$'),
+    rnk
+  ) %>% 
+  arrange(rnk) %>% 
+  filter(rnk <= 10) %>% 
+  gt::gt() %>% 
+  gt::cols_label(
+    .list = 
+      list(
+        date = 'Date',
+        team_h = 'Home',
+        # logo_h = ' ',
+        team_a = 'Away',
+        # logo_a = ' ',
+        g_h = 'Home',
+        g_a = 'Away',
+        xg_h = 'Home',
+        xg_a = 'Away',
+        favorite_count = 'Actual',
+        favorite_pred = 'Predicted',
+        retweet_count = 'Actual',
+        retweet_pred = 'Predicted',
+        rnk = gt::md('**EOE Rank**')
+      )
+  ) %>%
+  tab_footnote(
+    footnote = 'Engagement over Expected (EOE)',
+    locations = cells_column_labels(columns = vars(rnk))
+  ) %>% 
+  tab_spanner(
+    label = 'Team',
+    columns = vars(team_h, team_a)
+  ) %>% 
+  tab_spanner(
+    label = 'Goals',
+    columns = vars(g_h, g_a)
+  ) %>% 
+  tab_spanner(
+    label = 'xG',
+    columns = vars(xg_h, xg_a)
+  ) %>% 
+  tab_spanner(
+    label = 'Favorites',
+    columns = vars(favorite_count, favorite_pred)
+  ) %>% 
+  tab_spanner(
+    label = 'Retweets',
+    columns = vars(retweet_count, retweet_pred)
+  ) %>% 
+  fmt_number(
+    columns = vars(favorite_count, retweet_count),
+    decimals = 0,
+    use_seps = TRUE
+  ) %>% 
+  fmt_number(
+    columns = vars(favorite_pred, retweet_pred),
+    decimals = 0,
+    use_seps = TRUE
   )
-viz_preds
+
+
 
 cols_x <- 
   tibble(
@@ -293,31 +501,8 @@ shap_long <-
     values_to = 'shap_value'
   ) %>% 
   mutate(across(stem, ~str_remove(.x, '_shap_value$'))) %>% 
-  mutate(across(stem, ~ sprintf('x%ss', .toupper1(.x))))
+  mutate(across(stem, ~ sprintf('%ss', .toupper1(.x))))
 shap_long
-
-shap_long %>% 
-  filter(status_id == max(status_id)) %>% 
-  mutate(sign = ifelse(shap_value > 0, 'pos', 'neg')) %>% 
-  group_by(stem) %>% 
-  mutate(rnk = row_number(desc(abs(shap_value)))) %>% 
-  ungroup() %>% 
-  filter(rnk <= 10L) %>% 
-  ggplot() +
-  aes(y = tidytext::reorder_within(lab, shap_value, stem), x = shap_value) +
-  geom_col(aes(fill = sign), show.legend = FALSE) +
-  tidytext::scale_y_reordered() +
-  scale_fill_manual(values = c('neg' = '#7a5193', 'pos' = '#ef5675')) +
-  .theme(base_size = 12) +
-  theme(
-    panel.grid.major.y = element_blank()
-  ) +
-  facet_wrap(~stem, scales = 'free') +
-  labs(
-    title = '10 Most Important Factors for xEngagement',
-    y = NULL,
-    x = 'mean(|SHAP value|)'
-  )
 
 shap_agg <-
   shap_long %>% 
@@ -332,19 +517,84 @@ shap_agg <-
   arrange(stem, shap_value_rnk)
 shap_agg
 
-viz_shap_agg <-
-  shap_agg %>% 
+n_col <- shap_agg %>% slice_max(shap_value_rnk, with_ties = FALSE) %>% pull(shap_value_rnk)
+n_show <- 10L
+n_diff <- n_col - n_show
+n_diff
+
+shap_long_ex <-
+  shap_long %>% 
+  # filter(status_id == max(status_id)) %>% 
+  filter(status_id == !!status_id_ex) %>% 
+  mutate(sign = ifelse(shap_value > 0, 'pos', 'neg')) %>% 
+  group_by(stem) %>% 
+  mutate(rnk = row_number(desc(abs(shap_value)))) %>% 
+  ungroup() %>% 
+  filter(rnk <= 10L)
+
+lab_title_shap <- 'Most Important Features for @xGPhilosophy\'s xEngagement'
+lab_caption <- sprintf('%s features not shown.', n_diff)
+
+.add_common_layers <- function(...) {
+  list(
+    ...,
+    theme(panel.grid.major.y = element_blank()),
+    labs(
+      title = 'Most Important Features for @xGPhilosophy\'s xEngagement',
+      y = NULL,
+      tag = '**Viz**: @TonyElHabr',
+      caption = sprintf('%s features not shown.', n_diff)
+    )
+  )
+}
+
+viz_shap_ex <-
+  shap_long_ex %>% 
   ggplot() +
   aes(y = tidytext::reorder_within(lab, shap_value, stem), x = shap_value) +
-  geom_col() +
+  geom_col(aes(fill = sign), show.legend = FALSE) +
   tidytext::scale_y_reordered() +
-  # .theme() +
+  scale_fill_manual(values = c('neg' = '#7a5193', 'pos' = '#ef5675')) +
   theme(
     panel.grid.major.y = element_blank()
   ) +
   facet_wrap(~stem, scales = 'free') +
+  .add_common_layers() +
+  theme(
+    plot.subtitle = ggtext::element_markdown()
+  ) +
   labs(
-    y = NULL,
-    x = 'mean(|SHAP value|)'
+    x = 'SHAP value',
+    subtitle = glue::glue('{preds_ex$lab_text}<br/><b><span style="color:#333333"><b>Favorites</b></span>, Actual / Predicted: {scales::comma(preds_ex$favorite_count)} / {scales::comma(preds_ex$favorite_pred)} | <b><span style="color:#333333"><b>Retweets</b></span>, Actual / Predicted: {scales::comma(preds_ex$retweet_count)} / {scales::comma(preds_ex$retweet_pred)}')
+  )
+viz_shap_ex
+
+.f_save_shap <- partial(.save_plot, height = 8, width = 12, type = 'cairo', ... = )
+.f_save_shap(viz_shap_ex)
+
+viz_shap_agg <-
+  shap_agg %>% 
+  group_by(stem) %>% 
+  filter(shap_value_rnk <= n_show) %>% 
+  ungroup() %>% 
+  ggplot() +
+  aes(y = tidytext::reorder_within(lab, shap_value, stem), x = shap_value) +
+  geom_col(aes(fill = stem), show.legend = FALSE) +
+  tidytext::scale_y_reordered() +
+  # .theme() +
+  scale_fill_manual(values = c('Favorites' = '#003f5c', 'Retweets' = '#ffa600')) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    strip.text = element_text(size = 22),
+    strip.background = element_rect(fill = NA)
+  ) +
+  facet_wrap(~stem, scales = 'free') +
+  .add_common_layers() +
+  labs(
+    x = 'mean(|SHAP value|)',
+    subtitle = 'Average across all tweets'
   )
 viz_shap_agg
+
+.f_save_shap(viz_shap_agg)
+

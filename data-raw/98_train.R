@@ -8,8 +8,21 @@ valid_stems <- get_valid_stems()
 
 tweets <- retrieve_tweets(method = method, token = token)
 tweets_transformed <- tweets %>% transform_tweets(train = train)
+col_y_sym <- cols_lst$col_y %>% sym()
+x_mat <- data %>% dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% .df2mat()
+
+.f_transform <- function() {
+   tweets %>% transform_tweets(train = train)
+}
+
+tweets_transformed <- 
+  do_get(
+    f = .f_transform,
+    dir = dir_data,
+    file = 'tweets_transformed'
+  )
+
 .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
-tweets_transformed
 
 res_fit <-
   valid_stems %>% 
@@ -49,10 +62,10 @@ res_preds <-
       )
     )
   )
-res <-
-  res_preds %>% 
-  dplyr::select(stem, res) %>% 
-  tidyr::unnest_wider(res) %>% 
-  dplyr::select(stem, preds) %>% 
-  tidyr::unnest(preds)
-res %>% visdat::vis_dat()
+# res <-
+#   res_preds %>% 
+#   dplyr::select(stem, res) %>% 
+#   tidyr::unnest_wider(res) %>% 
+#   dplyr::select(stem, preds) %>% 
+#   tidyr::unnest(preds)
+# res %>% visdat::vis_dat()
