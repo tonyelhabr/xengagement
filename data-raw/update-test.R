@@ -283,10 +283,8 @@ shap_long <-
   dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
   dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
 
-tweet_new <- tweets_new %>% dplyr::select(status_id) %>% dplyr::slice(8)
-pred_new <- preds %>% dplyr::semi_join(tweet_new)
-pred_new
-tweet_new
+# tweet_new <- tweets_new %>% dplyr::select(status_id) %>% dplyr::slice(8)
+pred_new <- preds %>% dplyr::filter(status_id == '1371583784055869442')
 
 res_generate <-
   xengagement::generate_tweet(
@@ -299,7 +297,7 @@ res_generate <-
     dir = dir_figs,
     # delete_plot = TRUE,
     dry_run = FALSE,
-    override = TRUE
+    override = FALSE
   )
 
 .display_info('Successfully completed update at {Sys.time()}.')
