@@ -332,7 +332,7 @@ res_generate <-
       shap_long = shap_long,
       dir = dir_figs,
       # delete_plot = TRUE,
-      dry_run = T
+      dry_run = FALSE
     )
   ))
 
