@@ -297,6 +297,7 @@ res_generate <-
     dir = dir_figs,
     # delete_plot = TRUE,
     dry_run = FALSE,
+    delete_plot = FALSE,
     override = TRUE
   )
 
