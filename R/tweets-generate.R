@@ -207,10 +207,10 @@ generate_tweet <-
     
     path_png_preds <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
     path_png_shap <- .plot_shap(shap_long = shap_long, status_id = pred$status_id, ...)
-    if(delete_plot) {
-      on.exit(file.remove(path_png_preds), add = FALSE)
-      on.exit(file.remove(path_png_shap), add = FALSE)
-    }
+    # if(delete_plot) {
+    #   on.exit(file.remove(path_png_preds), add = FALSE)
+    #   on.exit(file.remove(path_png_shap), add = FALSE)
+    # }
     
     if(dry_run & !override) {
       .display_info('Would have made the following tweet {suffix} if not for `dry_run = TRUE`: 
@@ -232,6 +232,11 @@ generate_tweet <-
       media = c(path_png_preds, path_png_shap)
       # media = path_png_shap
     )
+    if(delete_plot) {
+      on.exit(file.remove(path_png_preds), add = FALSE)
+      on.exit(file.remove(path_png_shap), add = FALSE)
+    }
+    invisible()
   }
 
 # # TODO: Follow up 24 hours after the original tweet
