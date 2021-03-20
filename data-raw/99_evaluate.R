@@ -668,8 +668,13 @@ viz_shap_agg <-
   ) +
   facet_wrap(~stem, scales = 'free') +
   .add_common_layers() +
+  theme(
+    strip.background = element_blank(),
+    axis.text.x = element_blank()
+  ) +
   labs(
-    x = 'mean(|SHAP value|)',
+    x = NULL,
+    # x = 'mean(|SHAP value|)',
     subtitle = 'Average across all tweets'
   )
 viz_shap_agg
