@@ -22,7 +22,7 @@ thread](https://twitter.com/TonyElHabr/status/1373277253572960258?s=20)
 for a high-level discussion of how the package can be used to gain
 insights. Also, see [this dashboard](https://xengagement.herokuapp.com/)
 using outputs from this package. (Yes, that is a python-based web app
-:snake: using outputs from an R package :laughing:)
+:snake: using outputs from an R package :laughing:.)
 
 ## Installation
 
@@ -33,3 +33,23 @@ You can install the development version of `{xengagement}` from
 # install.packages('remotes')
 remotes::install_github('tonyelhabr/xengagement')
 ```
+
+## Developer Usage
+
+-   `data-raw/update.R`: Run the [Twitter
+    bot](https://twitter.com/punditratio).
+
+-   `data-raw/98_train.R`: Re-train models.
+
+-   `data-raw/99_evaluate.R`: Update plots used in [Twitter
+    thread](https://twitter.com/TonyElHabr/status/1373277253572960258?s=20).
+
+-   `data-raw/00_scrape_colors.R`: Re-scrape team colors. The results
+    have to be added manually to the `team_mapping.csv` file. (Not using
+    `{teamcolors}` package since it may or may not be kept up-to-date.)
+
+-   `data-raw/01_generate_team_mapping.R`: Update internal team mapping
+    data sets, presumably when there are changes to EPL teams (e.g. at
+    the beginning of a new season). Also, update team account Twitter
+    followers (which isn’t done with `transform_tweets()` to prevent
+    hitting the Twitter API a ton).
