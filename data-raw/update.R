@@ -280,6 +280,7 @@ tweets_rescaled_long <-
   res
 }
 
+cols_id <- c(cols_lst$cols_id, 'created_at')
 shap <-
   valid_stems %>%
   stats::setNames(., .) %>% 
@@ -294,13 +295,14 @@ shap <-
   ) %>% 
   dplyr::left_join(
     preds %>% 
-      dplyr::select(dplyr::all_of(cols_lst$cols_id), created_at, lab_text), 
+      dplyr::select(dplyr::all_of(cols_id), lab_text), 
     by = cols_lst$cols_id
   ) %>% 
   dplyr::filter(feature != 'baseline') %>% 
   dplyr::arrange(dplyr::all_of(cols_lst$cols_id), feature)
+shap
 
-shap_id_cols <- c(cols_lst$cols_id, 'lab')
+shap_id_cols <- c(cols_id, 'lab')
 shap_long <-
   shap %>% 
   dplyr::select(dplyr::all_of(shap_id_cols), dplyr::matches('_shap_value$')) %>% 
@@ -311,7 +313,7 @@ shap_long <-
   ) %>% 
   dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
   dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
-
+shap_long
 .export_csv(preds)
 .export_csv(preds_by_team)
 .export_csv(shap)

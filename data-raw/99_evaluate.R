@@ -345,15 +345,67 @@ library(gt)
 # Methods to get logos
 # Look at Tom Mocks' NFL function (https://github.com/jthomasmock/espnscrapeR/blob/master/R/get_nfl_teams.R), but change format to https://a.espncdn.com/i/teamlogos/soccer/500/360.png. the EPL teams have numbers associated with them instead of abbreviations, which makes this a pain in the ass.
 # Scrape from 538's table, which just scrapes from ESPN.
-preds %>% 
+.f_rename <- function(side) {
+  team_mapping %>% 
+    select(team, logo = url_logo_espn) %>% 
+    rename_all(~sprintf('%s_%s', .x, side))
+}
+
+# Reference: https://themockup.blog/posts/2020-09-26-functions-and-themes-for-gt-tables/?panelset4=theme-code3
+.gt_theme_538 <- function(data,...) {
+  data %>%
+    opt_all_caps()  %>%
+    opt_table_font(
+      font = list(
+        google_font("Karla"),
+        default_fonts()
+      )
+    ) %>%
+    tab_style(
+      style = cell_borders(
+        sides = "bottom", color = "transparent", weight = px(2)
+      ),
+      locations = cells_body(
+        columns = TRUE,
+        # This is a relatively sneaky way of changing the bottom border
+        # Regardless of data size
+        rows = nrow(data$`_data`)
+      )
+    )  %>% 
+    tab_options(
+      column_labels.background.color = "white",
+      table.border.top.width = px(3),
+      table.border.top.color = "transparent",
+      table.border.bottom.color = "transparent",
+      table.border.bottom.width = px(3),
+      column_labels.border.top.width = px(3),
+      column_labels.border.top.color = "transparent",
+      column_labels.border.bottom.width = px(3),
+      column_labels.border.bottom.color = "black",
+      data_row.padding = px(3),
+      source_notes.font.size = 12,
+      table.font.size = 16,
+      heading.align = "left",
+      ...
+    ) 
+}
+
+team_filt <- 'Brighton'
+c_filt <- team_mapping %>% filter(team == !!team_filt) %>% pull(color_sec)
+tb_ex <-
+  preds %>% 
   mutate(
     date = lubridate::date(created_at),
     rnk = row_number(-total_diff_prnk)
   ) %>%
+  left_join(.f_rename('h')) %>% 
+  left_join(.f_rename('a')) %>% 
   select(
     date,
     team_h,
+    logo_h,
     team_a,
+    logo_a,
     g_h,
     g_a,
     xg_h,
@@ -369,9 +421,9 @@ preds %>%
       list(
         date = 'Date',
         team_h = 'Home',
-        # logo_h = ' ',
+        logo_h = ' ',
         team_a = 'Away',
-        # logo_a = ' ',
+        logo_a = ' ',
         g_h = 'Home',
         g_a = 'Away',
         xg_h = 'Home',
@@ -383,13 +435,24 @@ preds %>%
         rnk = gt::md('**EOE Rank**')
       )
   ) %>%
+  gt::text_transform(
+    locations = gt::cells_body(
+      vars(logo_h, logo_a)
+    ),
+    fn = function(x) {
+      gt::web_image(
+        url = x,
+        height = 25
+      )
+    }
+  ) %>% 
   tab_footnote(
     footnote = 'Engagement over Expected (EOE)',
     locations = cells_column_labels(columns = vars(rnk))
   ) %>% 
   tab_spanner(
     label = 'Team',
-    columns = vars(team_h, team_a)
+    columns = vars(team_h, logo_h, team_a, logo_a)
   ) %>% 
   tab_spanner(
     label = 'Goals',
@@ -398,7 +461,7 @@ preds %>%
   tab_spanner(
     label = 'xG',
     columns = vars(xg_h, xg_a)
-  ) %>% 
+  ) %>%
   tab_spanner(
     label = 'Favorites',
     columns = vars(favorite_count, favorite_pred)
@@ -416,9 +479,19 @@ preds %>%
     columns = vars(favorite_pred, retweet_pred),
     decimals = 0,
     use_seps = TRUE
+  ) %>% 
+  tab_style(
+    style = list(
+      cell_fill(color = c_filt)
+    ),
+    locations = cells_body(rows = team_h == !!team_filt | team_a == !!team_filt)
+  ) %>% 
+  .gt_theme_538() %>% 
+  tab_source_note(
+    'Table theme (538 style): @thomas_mock'
   )
-
-
+tb_ex
+gt::gtsave(tb_ex, file.path(dir_data, 'tb_ex.png'))
 
 cols_x <- 
   tibble(
@@ -492,6 +565,7 @@ shap <-
 shap
 
 shap_id_cols <- c(cols_lst$cols_id, 'lab')
+
 shap_long <-
   shap %>% 
   select(all_of(shap_id_cols), matches('_shap_value$')) %>% 
@@ -518,7 +592,7 @@ shap_agg <-
 shap_agg
 
 n_col <- shap_agg %>% slice_max(shap_value_rnk, with_ties = FALSE) %>% pull(shap_value_rnk)
-n_show <- 10L
+n_show <- n_col
 n_diff <- n_col - n_show
 n_diff
 
@@ -530,10 +604,10 @@ shap_long_ex <-
   group_by(stem) %>% 
   mutate(rnk = row_number(desc(abs(shap_value)))) %>% 
   ungroup() %>% 
-  filter(rnk <= 10L)
+  filter(rnk <= !!n_show)
 
 lab_title_shap <- 'Most Important Features for @xGPhilosophy\'s xEngagement'
-lab_caption <- sprintf('%s features not shown.', n_diff)
+# lab_caption <- sprintf('%s features not shown.', n_diff)
 
 .add_common_layers <- function(...) {
   list(
@@ -543,13 +617,15 @@ lab_caption <- sprintf('%s features not shown.', n_diff)
       title = 'Most Important Features for @xGPhilosophy\'s xEngagement',
       y = NULL,
       tag = '**Viz**: @TonyElHabr',
-      caption = sprintf('%s features not shown.', n_diff)
+      # caption = sprintf('%s features not shown.', n_diff)
+      caption = ''
     )
   )
 }
 
 viz_shap_ex <-
   shap_long_ex %>% 
+  filter(stem == 'Retweets') %>% 
   ggplot() +
   aes(y = tidytext::reorder_within(lab, shap_value, stem), x = shap_value) +
   geom_col(aes(fill = sign), show.legend = FALSE) +
@@ -561,10 +637,12 @@ viz_shap_ex <-
   facet_wrap(~stem, scales = 'free') +
   .add_common_layers() +
   theme(
-    plot.subtitle = ggtext::element_markdown()
+    plot.subtitle = ggtext::element_markdown(),
+    axis.text.x = element_blank()
   ) +
   labs(
-    x = 'SHAP value',
+    # x = 'SHAP value',
+    x = NULL,
     subtitle = glue::glue('{preds_ex$lab_text}<br/><b><span style="color:#333333"><b>Favorites</b></span>, Actual / Predicted: {scales::comma(preds_ex$favorite_count)} / {scales::comma(preds_ex$favorite_pred)} | <b><span style="color:#333333"><b>Retweets</b></span>, Actual / Predicted: {scales::comma(preds_ex$retweet_count)} / {scales::comma(preds_ex$retweet_pred)}')
   )
 viz_shap_ex
