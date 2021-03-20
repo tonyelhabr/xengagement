@@ -20,7 +20,8 @@ cat(sprintf('Files in `dir_data = "%s"`.', dir_data), sep = '\n')
 # print(paths_data_info[, c('mtime'), drop = FALSE])
 
 # functions, utils-display ----
-.display_info <- function(x, ..., .envir = parent.frame(), .verbose = TRUE, .f_glue = glue::glue_collapse) {
+# Rename this from `.display_info()` for the sake of not having the same function name as the package.
+.inform <- function(x, ..., .envir = parent.frame(), .verbose = TRUE, .f_glue = glue::glue_collapse) {
   if (!.verbose) {
     return(invisible(x))
   }
@@ -58,7 +59,7 @@ tweets_new <-
 is_null <- is.null(tweets_new)
 if(is_null) {
   suffix <- ifelse(n_hour_fresh > 1L, 's', '')
-  .display_info('0 new tweets found in past {n_hour_fresh} hours{suffix} at {Sys.time()}!')
+  .inform('0 new tweets found in past {n_hour_fresh} hours{suffix} at {Sys.time()}!')
   return(invisible(FALSE))
 }
 n_tweet <- nrow(tweets_new)
@@ -71,7 +72,7 @@ tweets <-
   )
 
 tweets_transformed <- tweets %>% transform_tweets(train = FALSE)
-.display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
+.inform('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
 
 res_preds <-
   dplyr::tibble(
@@ -293,7 +294,7 @@ shap <-
   ) %>% 
   dplyr::left_join(
     preds %>% 
-      dplyr::select(dplyr::all_of(cols_lst$cols_id), lab_text), 
+      dplyr::select(dplyr::all_of(cols_lst$cols_id), created_at, lab_text), 
     by = cols_lst$cols_id
   ) %>% 
   dplyr::filter(feature != 'baseline') %>% 
@@ -336,5 +337,5 @@ res_generate <-
     )
   ))
 
-.display_info('Successfully completed update at {Sys.time()}.')
+.inform('Successfully completed update at {Sys.time()}.')
 

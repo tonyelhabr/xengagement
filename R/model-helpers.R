@@ -158,6 +158,8 @@
     list(
       col_y = sprintf('%s_count_trans', stem),
       cols_id = 'status_id',
+      # Keep `created_at` for filtering for shap in dash app
+      # cols_id = c('status_id', 'created_at'),
       # cols_id = 'idx',
       col_wt = sprintf('wt_%s', stem),
       col_strata = 'created_at',
