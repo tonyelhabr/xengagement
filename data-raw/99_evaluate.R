@@ -1,7 +1,6 @@
 
 # A lot of this is similar to what is in the update script. Not sure if there is a good way to avoid duplication. This script is intended for adhoc purposes, such as looking at predictions for individual teams, computing MAPE, etc.
 library(tidyverse)
-library(lubridate)
 library(xengagement)
 
 extrafont::loadfonts(device = 'win', quiet = TRUE)
@@ -150,7 +149,7 @@ preds_init <-
 wt_favorite <- 0.5
 wt_retweet <- 0.5
 
-now <- now()
+now <- lubridate::now()
 
 preds_filt <-
   preds_init %>%
@@ -341,7 +340,6 @@ viz_preds_ex <-
 viz_preds_ex
 .f_save_preds(viz_preds_ex)
 
-library(gt)
 # Methods to get logos
 # Look at Tom Mocks' NFL function (https://github.com/jthomasmock/espnscrapeR/blob/master/R/get_nfl_teams.R), but change format to https://a.espncdn.com/i/teamlogos/soccer/500/360.png. the EPL teams have numbers associated with them instead of abbreviations, which makes this a pain in the ass.
 # Scrape from 538's table, which just scrapes from ESPN.
@@ -355,34 +353,34 @@ library(gt)
 .gt_theme_538 <- function(data,...) {
   data %>%
     opt_all_caps()  %>%
-    opt_table_font(
+    gt::opt_table_font(
       font = list(
-        google_font("Karla"),
-        default_fonts()
+        gt::google_font("Karla"),
+        gt::default_fonts()
       )
     ) %>%
-    tab_style(
-      style = cell_borders(
-        sides = "bottom", color = "transparent", weight = px(2)
+    gt::tab_style(
+      style = gt::cell_borders(
+        sides = "bottom", color = "transparent", weight = gt::px(2)
       ),
-      locations = cells_body(
+      locations = gt::cells_body(
         columns = TRUE,
         # This is a relatively sneaky way of changing the bottom border
         # Regardless of data size
         rows = nrow(data$`_data`)
       )
     )  %>% 
-    tab_options(
+    gt::tab_options(
       column_labels.background.color = "white",
-      table.border.top.width = px(3),
+      table.border.top.width = gt::px(3),
       table.border.top.color = "transparent",
       table.border.bottom.color = "transparent",
-      table.border.bottom.width = px(3),
-      column_labels.border.top.width = px(3),
+      table.border.bottom.width = gt::px(3),
+      column_labels.border.top.width = gt::px(3),
       column_labels.border.top.color = "transparent",
-      column_labels.border.bottom.width = px(3),
+      column_labels.border.bottom.width = gt::px(3),
       column_labels.border.bottom.color = "black",
-      data_row.padding = px(3),
+      data_row.padding = gt::px(3),
       source_notes.font.size = 12,
       table.font.size = 16,
       heading.align = "left",
@@ -446,49 +444,53 @@ tb_ex <-
       )
     }
   ) %>% 
-  tab_footnote(
+  gt::tab_footnote(
     footnote = 'Engagement over Expected (EOE)',
-    locations = cells_column_labels(columns = vars(rnk))
+    locations = gt::cells_column_labels(columns = vars(rnk))
   ) %>% 
-  tab_spanner(
+  gt::tab_spanner(
     label = 'Team',
     columns = vars(team_h, logo_h, team_a, logo_a)
   ) %>% 
-  tab_spanner(
+  gt::tab_spanner(
     label = 'Goals',
     columns = vars(g_h, g_a)
   ) %>% 
-  tab_spanner(
+  gt::tab_spanner(
     label = 'xG',
     columns = vars(xg_h, xg_a)
   ) %>%
-  tab_spanner(
+  gt::tab_spanner(
     label = 'Favorites',
     columns = vars(favorite_count, favorite_pred)
   ) %>% 
-  tab_spanner(
+  gt::tab_spanner(
     label = 'Retweets',
     columns = vars(retweet_count, retweet_pred)
   ) %>% 
-  fmt_number(
+  gt::fmt_number(
     columns = vars(favorite_count, retweet_count),
     decimals = 0,
     use_seps = TRUE
   ) %>% 
-  fmt_number(
+  gt::fmt_number(
     columns = vars(favorite_pred, retweet_pred),
     decimals = 0,
     use_seps = TRUE
   ) %>% 
-  tab_style(
+  gt::tab_style(
     style = list(
-      cell_fill(color = c_filt)
+      gt::cell_fill(color = c_filt)
     ),
-    locations = cells_body(rows = team_h == !!team_filt | team_a == !!team_filt)
+    locations = gt::cells_body(rows = team_h == !!team_filt | team_a == !!team_filt)
   ) %>% 
+  gt::cols_align(
+    align = 'right'# ,
+    # columns = vars(rnk), # vars(matches('^(g|xg|favorite|retweet)'), rnk)
+  ) %>%
   .gt_theme_538() %>% 
-  tab_source_note(
-    'Table theme (538 style): @thomas_mock'
+  gt::tab_source_note(
+    gt::md('**Table theme** (538 style): @thomas_mock')
   )
 tb_ex
 gt::gtsave(tb_ex, file.path(dir_data, 'tb_ex.png'))
