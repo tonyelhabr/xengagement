@@ -46,3 +46,11 @@ remotes::install_github('tonyelhabr/xengagement')
 -   `data-raw/00_scrape_colors.R`: Re-scrape team colors. The results have to be added manually to the `team_mapping.csv` file. (Not using `{teamcolors}` package since it may or may not be kept up-to-date.)
 
 -   `data-raw/01_generate_team_mapping.R`: Update internal team mapping data sets, presumably when there are changes to EPL teams (e.g. at the beginning of a new season). Also, update team account Twitter followers (which isn't done with `transform_tweets()` to prevent hitting the Twitter API a ton).
+
+## TODO
+
+1.  Convert estimated follower counts for teams to percent ranks. (My guess is that this would slightly improve model performance.)
+
+2.  Do a true time-based cross validation to get a better esimtate of future predictive performance.
+
+3.  Make bot tweets more custom.

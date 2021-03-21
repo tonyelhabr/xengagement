@@ -53,3 +53,13 @@ remotes::install_github('tonyelhabr/xengagement')
     the beginning of a new season). Also, update team account Twitter
     followers (which isn’t done with `transform_tweets()` to prevent
     hitting the Twitter API a ton).
+
+## TODO
+
+1.  Convert estimated follower counts for teams to percent ranks. (My
+    guess is that this would slightly improve model performance.)
+
+2.  Do a true time-based cross validation to get a better esimtate of
+    future predictive performance.
+
+3.  Make bot tweets more custom.
