@@ -189,18 +189,32 @@ generate_tweet <-
     a_is_home <- team_a == pred_a$team_h
     sign_a <- ifelse(a_is_home, 'vs.', '@')
     team_ah <- ifelse(a_is_home, pred_a$team_a, pred_a$team_h)
-
-    # Note that we must mention the account that we are replying to in order to attch media
-    text <- glue::glue("
-    {prelude}@xGPhilosophy's xEngagment
-    xFavorites: {.f_number(pred$favorite_pred)} ({.f_percentile(pred$favorite_pred_prnk)} percentile)
-    xRetweets: {.f_number(pred$retweet_pred)} ({.f_percentile(pred$retweet_pred_prnk)} percentile)
     
-    Last match for {team_h}:
+    suffix_favorite <- 
+      ifelse(
+        pred$favorite_pred_prnk >= 0.75, 
+        glue::glue(' ({.f_percentile(pred$favorite_pred_prnk)} percentile)'),
+        ''
+      )
+    
+    suffix_retweet <- 
+      ifelse(
+        pred$retweet_pred_prnk >= 0.75, 
+        glue::glue(' {.f_percentile(pred$retweet_pred_prnk)} percentile)'),
+        ''
+      )
+    
+    # Note that we must mention the account that we are replying to in order to attach media
+    text <- glue::glue("
+    {prelude}xEngagment for @xGPhilosophy
+    xFavorites: {.f_number(pred$favorite_pred)}{suffix_favorite}
+    xRetweets: {.f_number(pred$retweet_pred)}{suffix_retweet}
+    
+    Last match for {team_h} ({sign_h} {team_ha})::
     # of Favorites: {.f_number(pred_h$favorite_count)}
     # of Retweets: {.f_number(pred_h$retweet_count)} 
     
-    Last match for {team_a}:
+    Last match for {team_a} ({sign_a} {team_ah}):
     # of Favorites: {.f_number(pred_a$favorite_count)}
     # of Retweets: {.f_number(pred_a$retweet_count)}{appendix}
     ")
