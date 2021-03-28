@@ -20,7 +20,7 @@ team_mapping <-
       .default = readr::col_character()
     )
   ) %>% 
-  dplyr::select(-team_understat) %>% 
+  # dplyr::select(-team_understat) %>% 
   dplyr::filter(league %in% c('epl', 'champ'))
 team_mapping
 
@@ -39,4 +39,17 @@ team_corrections <-
     team_correct = c('Tottenham', 'Man United', 'Crystal Palace')
   )
 
-usethis::use_data(team_accounts, team_mapping, team_accounts_mapping, team_corrections, overwrite = TRUE, internal = TRUE)
+usethis::use_data(
+  team_accounts,
+  team_mapping,
+  team_accounts_mapping,
+  team_corrections,
+  overwrite = TRUE,
+  internal = TRUE
+)
+
+usethis::use_data(
+  team_accounts_mapping,
+  overwrite = TRUE
+)
+
