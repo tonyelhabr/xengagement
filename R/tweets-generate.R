@@ -200,7 +200,7 @@ generate_tweet <-
     suffix_retweet <- 
       ifelse(
         pred$retweet_pred_prnk >= 0.75, 
-        glue::glue(' {.f_percentile(pred$retweet_pred_prnk)} percentile)'),
+        glue::glue(' ({.f_percentile(pred$retweet_pred_prnk)} percentile)'),
         ''
       )
     
