@@ -16,7 +16,8 @@ generate_tweet(
   appendix = NULL,
   user = .get_user_bot(),
   dry_run = TRUE,
-  delete_plot = !dry_run
+  delete_plot = !dry_run,
+  override = FALSE
 )
 }
 \arguments{
@@ -39,6 +40,10 @@ generate_tweet(
 \item{user}{Who is making the reply. (pundit_ratio by default.)}
 
 \item{dry_run}{Whether or not to actually make a tweet.}
+
+\item{delete_plot}{Whether or not to delete plots made and attached to tweet.}
+
+\item{override}{Whether or not to override time filtering criteria (useful for testing).}
 }
 \description{
 Generate a tweet

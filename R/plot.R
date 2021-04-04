@@ -142,18 +142,20 @@
       .display_error('Filtered data should have >0 rows.')
     }
     
+    n_feature <- 5L
     shap_long_filt <-
       shap_long_filt %>% 
       dplyr::mutate(sign = ifelse(shap_value > 0, 'pos', 'neg')) %>% 
       dplyr::group_by(stem) %>% 
       dplyr::mutate(rnk = dplyr::row_number(dplyr::desc(abs(shap_value)))) %>% 
       dplyr::ungroup() %>% 
-      dplyr::filter(rnk <= 10L)
+      dplyr::filter(rnk <= !!n_feature)
     
     viz <-
       shap_long_filt %>% 
       ggplot2::ggplot() +
       ggplot2::aes(y = .reorder_within(lab, shap_value, stem), x = shap_value) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = 0)) +
       ggplot2::geom_col(ggplot2::aes(fill = sign), show.legend = FALSE) +
       .scale_y_reordered() +
       ggplot2::scale_fill_manual(values = c('neg' = '#7a5193', 'pos' = '#ef5675')) +
@@ -161,14 +163,14 @@
       ggplot2::theme(
         plot.title.position = 'plot',
         axis.text.x = ggplot2::element_blank(),
-        axis.title.x = ggplot2::element_blank(),
+        # axis.title.x = ggplot2::element_blank(),
         panel.grid.major.y = ggplot2::element_blank()
       ) +
       ggplot2::facet_wrap(~stem, scales = 'free') +
       ggplot2::labs(
-        title = '10 Most Important Factors for xEngagement',
+        title = sprintf('%s Most Important Factors for xEngagement', n_feature),
         y = NULL,
-        x = 'mean(|SHAP value|)'
+        x = 'Importance Relative to Average Prediction'
       )
     f_export(viz, path)
     path
