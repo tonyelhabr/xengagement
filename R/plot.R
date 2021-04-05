@@ -166,7 +166,7 @@
         # axis.title.x = ggplot2::element_blank(),
         panel.grid.major.y = ggplot2::element_blank()
       ) +
-      ggplot2::facet_wrap(~stem, scales = 'free') +
+      ggplot2::facet_wrap(~stem, scales = 'free', ncol = 1L) +
       ggplot2::labs(
         title = sprintf('%s Most Important Factors for xEngagement', n_feature),
         y = NULL,

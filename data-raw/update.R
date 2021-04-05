@@ -182,6 +182,11 @@ preds <-
   x
 }
 
+.mutate_stem_col <- function(data) {
+  data %>% 
+    dplyr::mutate(dplyr::across(stem, ~dplyr::case_when(.x == 'favorite' ~ 'Fav', .x == 'retweet' ~ 'RT') %>% paste0('s')))
+}
+
 preds_long <-
   preds %>%
   dplyr::select(
@@ -197,7 +202,7 @@ preds_long <-
     names_pattern = '^(favorite|retweet)_(count|pred)'
   ) %>%
   tidyr::pivot_wider(names_from = 'what', values_from = 'value') %>% 
-  dplyr::mutate(dplyr::across(stem, ~ sprintf('%ss', .toupper1(.x))))
+  .mutate_stem_col()
 
 # For by team viz.
 .f_select <- function(suffix) {
@@ -312,8 +317,7 @@ shap_long <-
     values_to = 'shap_value'
   ) %>% 
   dplyr::mutate(dplyr::across(stem, ~stringr::str_remove(.x, '_shap_value$'))) %>% 
-  dplyr::mutate(dplyr::across(stem, ~ sprintf('x%ss', .toupper1(.x))))
-shap_long
+  .mutate_stem_col()
 .export_csv(preds)
 .export_csv(preds_by_team)
 .export_csv(shap)
