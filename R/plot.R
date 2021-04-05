@@ -95,7 +95,7 @@
       # ggplot2::geom_abline(ggplot2::aes(slope = 1, intercept = 0), size = 1, linetype = 2) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
       ggplot2::scale_x_continuous(labels = scales::comma) +
-      ggplot2::scale_color_manual(values = c('Favorites' = '#003f5c', 'Retweets' = '#ffa600')) +
+      ggplot2::scale_color_manual(values = c('Favs' = '#003f5c', 'RTs' = '#ffa600')) +
       ggplot2::facet_wrap(~stem, scales = 'free') +
       .theme() +
       ggplot2::labs(

@@ -207,16 +207,16 @@ generate_tweet <-
     # Note that we must mention the account that we are replying to in order to attach media
     text <- glue::glue("
     {prelude}xEngagment for @xGPhilosophy
-    xFavorites: {.f_number(pred$favorite_pred)}{suffix_favorite}
-    xRetweets: {.f_number(pred$retweet_pred)}{suffix_retweet}
+    xFavs: {.f_number(pred$favorite_pred)}{suffix_favorite}
+    xRTs: {.f_number(pred$retweet_pred)}{suffix_retweet}
     
     Last match for {team_h} ({sign_h} {team_ha})::
-    # of Favorites: {.f_number(pred_h$favorite_count)}
-    # of Retweets: {.f_number(pred_h$retweet_count)} 
+    # of Favs: {.f_number(pred_h$favorite_count)}
+    # of RTs: {.f_number(pred_h$retweet_count)} 
     
     Last match for {team_a} ({sign_a} {team_ah}):
-    # of Favorites: {.f_number(pred_a$favorite_count)}
-    # of Retweets: {.f_number(pred_a$retweet_count)}{appendix}
+    # of Favs: {.f_number(pred_a$favorite_count)}
+    # of RTs: {.f_number(pred_a$retweet_count)}{appendix}
     ")
     
     path_png_preds <- .plot_actual_v_pred(preds_long = preds_long, status_id = pred$status_id, ...)
@@ -278,8 +278,8 @@ generate_tweet <-
 #     
 #     text <- glue::glue('
 #     After {} hours since original tweet:
-#     # of Favorites: {.f_number(pred$favorite_count)} ({} {} than xFavorites)
-#     # of Retweets: {.f_number(pred$retweet_count)} ({} {} than xRetweets)
+#     # of Favs: {.f_number(pred$favorite_count)} ({} {} than xFavs)
+#     # of RTs: {.f_number(pred$retweet_count)} ({} {} than xRTs)
 #     
 #     \U0001f517: Check my bio for more @xGPhilosophy xEngagement.
 #     ')
