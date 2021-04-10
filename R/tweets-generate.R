@@ -210,7 +210,7 @@ generate_tweet <-
     xFavs: {.f_number(pred$favorite_pred)}{suffix_favorite}
     xRTs: {.f_number(pred$retweet_pred)}{suffix_retweet}
     
-    Last match for {team_h} ({sign_h} {team_ha})::
+    Last match for {team_h} ({sign_h} {team_ha}):
     # of Favs: {.f_number(pred_h$favorite_count)}
     # of RTs: {.f_number(pred_h$retweet_count)} 
     
