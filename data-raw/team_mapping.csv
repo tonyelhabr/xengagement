@@ -1,44 +1,44 @@
-league,team,team_understat,team_538,user_id,color_pri,color_sec,url_logo_espn
-epl,Arsenal,Arsenal,Arsenal,34613288,#d80919,#063672,https://a.espncdn.com/i/teamlogos/soccer/500/359.png
-epl,Aston Villa,Aston Villa,Aston Villa,27489253,#95bfe5,#670e36,https://a.espncdn.com/i/teamlogos/soccer/500/362.png
-epl,Bournemouth,Bournemouth,AFC Bournemouth,20880206,#d41e2a,#000,https://a.espncdn.com/i/teamlogos/soccer/500/349.png
-epl,Brighton,Brighton,Brighton and Hove Albion,57606154,#0a56a3,#F8BC1B,https://a.espncdn.com/i/teamlogos/soccer/500/331.png
-epl,Burnley,Burnley,Burnley,441309926,#80234c,#91D2F2,https://a.espncdn.com/i/teamlogos/soccer/500/379.png
-epl,Chelsea,Chelsea,Chelsea,22910295,#1b458f,#C4122E,https://a.espncdn.com/i/teamlogos/soccer/500/363.png
-epl,Crystal Palace,Crystal Palace,Crystal Palace,85307509,#034694,#ED1C24,https://a.espncdn.com/i/teamlogos/soccer/500/384.png
-epl,Everton,Everton,Everton,15891449,#063a99,#fff,https://a.espncdn.com/i/teamlogos/soccer/500/368.png
-epl,Fulham,Fulham,Fulham,22903812,#cc0000,#000,https://a.espncdn.com/i/teamlogos/soccer/500/370.png
-epl,Leeds,Leeds,Leeds United,1024095475,#005b9e,#ffcd00,https://a.espncdn.com/i/teamlogos/soccer/500/357.png
-epl,Leicester,Leicester,Leicester City,122392884,#1358a1,#FAB92C,https://a.espncdn.com/i/teamlogos/soccer/500/375.png
-epl,Liverpool,Liverpool,Liverpool,19583545,#e0202c,#19A78E,https://a.espncdn.com/i/teamlogos/soccer/500/364.png
-epl,Man City,Manchester City,Manchester City,14573900,#99c5e7,#022A5D,https://a.espncdn.com/i/teamlogos/soccer/500/382.png
-epl,Man United,Manchester United,Manchester United,558797310,#dc1f29,#000,https://a.espncdn.com/i/teamlogos/soccer/500/360.png
-epl,Newcastle,Newcastle United,Newcastle,35758259,#000000,#C2A475,https://a.espncdn.com/i/teamlogos/soccer/500/361.png
-epl,Norwich,Norwich,Norwich City,187572312,#fff200,#00A650,https://a.espncdn.com/i/teamlogos/soccer/500/381.png
-epl,Sheffield Utd,Sheffield United,Sheffield United,63463538,#ee2737,#0D171A,https://a.espncdn.com/i/teamlogos/soccer/500/398.png
-epl,Southampton,Southampton,Southampton,46143892,#d41e29,#FFC20E,https://a.espncdn.com/i/teamlogos/soccer/500/376.png
-epl,Tottenham,Tottenham,Tottenham Hotspur,121402638,#11214b,#11214b,https://a.espncdn.com/i/teamlogos/soccer/500/367.png
-epl,Watford,Watford,Watford,226590250,#feeb00,#000,https://a.espncdn.com/i/teamlogos/soccer/500/395.png
-epl,West Brom,West Bromwich Albion,West Bromwich Albion,280412626,#122f67,#122f67,https://a.espncdn.com/i/teamlogos/soccer/500/383.png
-epl,West Ham,West Ham,West Ham United,156247074,#7a263a,#2AB2E5,https://a.espncdn.com/i/teamlogos/soccer/500/371.png
-epl,Wolves,Wolverhampton Wanderers,Wolverhampton,49296276,#231f20,#FDB913,https://a.espncdn.com/i/teamlogos/soccer/500/380.png
-laliga,Real Madrid,,,14872237,,,
-laliga,Barcelona,,,96951800,,,
-laliga,Atleti,,,199354750,,,
-laliga,Valencia,,,109312021,,,
-laliga,Sevilla,,,115123104,,,
-laliga,Atletico,,,273933522,,,
-bund,Bayern Munich,,,773069256,,,
-bund,BVB Dortmund,,,165699676,,,
-bund,Schalke,,,296163037,,,
-bund,Leverkusen,,,180720589,,,
-bund,Borussia,,,80790735,,,
-bund,RB Leipzig,,,324992991,,,
-ligue1,PSG,,,38164846,,,
-ligue1,Marseille,,,40448264,,,
-ligue1,Lyon,,,33893706,,,
-seriea,Juventus,,,253508662,,,
-seriea,AC Milan,,,186386857,,,
-seriea,Inter Milan,,,124450567,,,
-seriea,Atalanta,,,338995273,,,
-ered,Ajax,,,153000691,,,
+league,team,team_understat,team_538,team_whoscored,user_id,color_pri,color_sec,url_logo_espn
+epl,Arsenal,Arsenal,Arsenal,Arsenal,34613288,#d80919,#063672,https://a.espncdn.com/i/teamlogos/soccer/500/359.png
+epl,Aston Villa,Aston Villa,Aston Villa,Aston Villa,27489253,#95bfe5,#670e36,https://a.espncdn.com/i/teamlogos/soccer/500/362.png
+epl,Bournemouth,Bournemouth,AFC Bournemouth,Bournemouth,20880206,#d41e2a,#000,https://a.espncdn.com/i/teamlogos/soccer/500/349.png
+epl,Brighton,Brighton,Brighton and Hove Albion,Brighton,57606154,#0a56a3,#F8BC1B,https://a.espncdn.com/i/teamlogos/soccer/500/331.png
+epl,Burnley,Burnley,Burnley,Burnley,441309926,#80234c,#91D2F2,https://a.espncdn.com/i/teamlogos/soccer/500/379.png
+epl,Chelsea,Chelsea,Chelsea,Chelsea,22910295,#1b458f,#C4122E,https://a.espncdn.com/i/teamlogos/soccer/500/363.png
+epl,Crystal Palace,Crystal Palace,Crystal Palace,Crystal Palace,85307509,#034694,#ED1C24,https://a.espncdn.com/i/teamlogos/soccer/500/384.png
+epl,Everton,Everton,Everton,Everton,15891449,#063a99,#fff,https://a.espncdn.com/i/teamlogos/soccer/500/368.png
+epl,Fulham,Fulham,Fulham,Fulham,22903812,#cc0000,#000,https://a.espncdn.com/i/teamlogos/soccer/500/370.png
+epl,Leeds,Leeds,Leeds United,Leeds,1024095475,#005b9e,#ffcd00,https://a.espncdn.com/i/teamlogos/soccer/500/357.png
+epl,Leicester,Leicester,Leicester City,Leicester,122392884,#1358a1,#FAB92C,https://a.espncdn.com/i/teamlogos/soccer/500/375.png
+epl,Liverpool,Liverpool,Liverpool,Liverpool,19583545,#e0202c,#19A78E,https://a.espncdn.com/i/teamlogos/soccer/500/364.png
+epl,Man City,Manchester City,Manchester City,Man City,14573900,#99c5e7,#022A5D,https://a.espncdn.com/i/teamlogos/soccer/500/382.png
+epl,Man United,Manchester United,Manchester United,Man Utd,558797310,#dc1f29,#000,https://a.espncdn.com/i/teamlogos/soccer/500/360.png
+epl,Newcastle,Newcastle United,Newcastle,Newcastle,35758259,#000000,#C2A475,https://a.espncdn.com/i/teamlogos/soccer/500/361.png
+epl,Norwich,Norwich,Norwich City,Norwich,187572312,#fff200,#00A650,https://a.espncdn.com/i/teamlogos/soccer/500/381.png
+epl,Sheffield Utd,Sheffield United,Sheffield United,Sheff Utd,63463538,#ee2737,#0D171A,https://a.espncdn.com/i/teamlogos/soccer/500/398.png
+epl,Southampton,Southampton,Southampton,Southampton,46143892,#d41e29,#FFC20E,https://a.espncdn.com/i/teamlogos/soccer/500/376.png
+epl,Tottenham,Tottenham,Tottenham Hotspur,Tottenham,121402638,#11214b,#11214b,https://a.espncdn.com/i/teamlogos/soccer/500/367.png
+epl,Watford,Watford,Watford,Watford,226590250,#feeb00,#000,https://a.espncdn.com/i/teamlogos/soccer/500/395.png
+epl,West Brom,West Bromwich Albion,West Bromwich Albion,West Brom,280412626,#122f67,#122f67,https://a.espncdn.com/i/teamlogos/soccer/500/383.png
+epl,West Ham,West Ham,West Ham United,West Ham,156247074,#7a263a,#2AB2E5,https://a.espncdn.com/i/teamlogos/soccer/500/371.png
+epl,Wolves,Wolverhampton Wanderers,Wolverhampton,Wolves,49296276,#231f20,#FDB913,https://a.espncdn.com/i/teamlogos/soccer/500/380.png
+laliga,Real Madrid,,,,14872237,,,
+laliga,Barcelona,,,,96951800,,,
+laliga,Atleti,,,,199354750,,,
+laliga,Valencia,,,,109312021,,,
+laliga,Sevilla,,,,115123104,,,
+laliga,Atletico,,,,273933522,,,
+bund,Bayern Munich,,,,773069256,,,
+bund,BVB Dortmund,,,,165699676,,,
+bund,Schalke,,,,296163037,,,
+bund,Leverkusen,,,,180720589,,,
+bund,Borussia,,,,80790735,,,
+bund,RB Leipzig,,,,324992991,,,
+ligue1,PSG,,,,38164846,,,
+ligue1,Marseille,,,,40448264,,,
+ligue1,Lyon,,,,33893706,,,
+seriea,Juventus,,,,253508662,,,
+seriea,AC Milan,,,,186386857,,,
+seriea,Inter Milan,,,,124450567,,,
+seriea,Atalanta,,,,338995273,,,
+ered,Ajax,,,,153000691,,,
