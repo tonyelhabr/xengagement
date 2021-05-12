@@ -352,16 +352,16 @@ viz_preds_ex
 # Reference: https://themockup.blog/posts/2020-09-26-functions-and-themes-for-gt-tables/?panelset4=theme-code3
 .gt_theme_538 <- function(data,...) {
   data %>%
-    opt_all_caps()  %>%
+    gt::opt_all_caps()  %>%
     gt::opt_table_font(
       font = list(
-        gt::google_font("Karla"),
+        gt::google_font('Karla'),
         gt::default_fonts()
       )
     ) %>%
     gt::tab_style(
       style = gt::cell_borders(
-        sides = "bottom", color = "transparent", weight = gt::px(2)
+        sides = 'bottom', color = 'transparent', weight = gt::px(2)
       ),
       locations = gt::cells_body(
         columns = TRUE,
@@ -371,19 +371,19 @@ viz_preds_ex
       )
     )  %>% 
     gt::tab_options(
-      column_labels.background.color = "white",
+      column_labels.background.color = 'white',
       table.border.top.width = gt::px(3),
-      table.border.top.color = "transparent",
-      table.border.bottom.color = "transparent",
+      table.border.top.color = 'transparent',
+      table.border.bottom.color = 'transparent',
       table.border.bottom.width = gt::px(3),
       column_labels.border.top.width = gt::px(3),
-      column_labels.border.top.color = "transparent",
+      column_labels.border.top.color = 'transparent',
       column_labels.border.bottom.width = gt::px(3),
-      column_labels.border.bottom.color = "black",
+      column_labels.border.bottom.color = 'black',
       data_row.padding = gt::px(3),
       source_notes.font.size = 12,
       table.font.size = 16,
-      heading.align = "left",
+      heading.align = 'left',
       ...
     ) 
 }

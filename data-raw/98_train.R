@@ -5,11 +5,14 @@ train <- TRUE
 method <- ifelse(train, 'all', 'since')
 dir_data <- get_dir_data()
 valid_stems <- get_valid_stems()
-
+cols_lst <- get_cols_lst(valid_stems[1])
 tweets <- retrieve_tweets(method = method, token = token)
 tweets_transformed <- tweets %>% transform_tweets(train = train)
 col_y_sym <- cols_lst$col_y %>% sym()
-x_mat <- data %>% dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% .df2mat()
+x_mat <- 
+  data %>% 
+  dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% 
+  .df2mat()
 
 .f_transform <- function() {
    tweets %>% transform_tweets(train = train)
@@ -19,8 +22,11 @@ tweets_transformed <-
   do_get(
     f = .f_transform,
     dir = dir_data,
-    file = 'tweets_transformed'
+    overwrite = TRUE,
+    export = TRUE
+    # file = 'tweets_transformed'
   )
+tweets_transformed <- tweets %>% transform_tweets(train = train)
 
 .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
 
