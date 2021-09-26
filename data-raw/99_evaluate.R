@@ -160,11 +160,11 @@ metrics <-
   summarize(
     mape_favorite = yardstick::mape_vec(favorite_count + 1, favorite_pred + 1),
     rmse_favorite = yardstick::rmse_vec(favorite_count, favorite_pred),
-    r2_favorite = yardstick::rsq_vec(favorite_count, favorite_pred),
+    r2_favorite = yardstick::rsq_vec(favorite_count + 1, favorite_pred + 1),
     # mape_favorite2 = mean(abs((favorite_count - favorite_pred) / favorite_count), na.rm = TRUE),
     mape_retweet = yardstick::mape_vec(retweet_count + 1, retweet_pred + 1),
     rmse_retweet = yardstick::rmse_vec(retweet_count, retweet_pred),
-    r2_retweet = yardstick::rsq_vec(retweet_count, retweet_pred)
+    r2_retweet = yardstick::rsq_vec(retweet_count + 1, retweet_pred + 1)
     # mape_retweet2 = mean(abs((retweet_count - retweet_pred) / retweet_count), na.rm = TRUE)
   ) %>% 
   pivot_longer(matches('.*'), names_to = 'metric', values_to = 'valule')

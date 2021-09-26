@@ -1,5 +1,5 @@
 
-
+# Only really need to do this once. Can just do this manually too
 library(tidyverse)
 library(rvest)
 page <- 'https://teamcolorcodes.com/soccer/premier-league-color-codes/' %>% xml2::read_html()

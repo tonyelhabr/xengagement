@@ -33,6 +33,7 @@ team_accounts_mapping <-
   )
 team_accounts_mapping
 
+# This is for matching xGP's conventions.
 team_corrections <-
   dplyr::tibble(
     team = c('Spurs', 'Man Utd', 'C Palace'),

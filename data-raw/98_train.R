@@ -24,8 +24,6 @@ tweets_transformed <- tweets %>% transform_tweets(train = train)
 
 .display_info('Reduced {nrow(tweets)} tweets to {nrow(tweets_transformed)} transformed tweets.')
 
-debugonce(xgboost:::slice.xgb.DMatrix)
-debugonce(xgboost::xgb.cv)
 res_fit <-
   valid_stems %>% 
   setNames(., .) %>% 
@@ -45,8 +43,6 @@ res_fit
 fit_favorite <- .pluck_fit('favorite')
 fit_retweet <- .pluck_fit('retweet')
 usethis::use_data(fit_favorite, fit_retweet, overwrite = TRUE)
-colnames(fit_favorite$feature_names)
-colnames(fit_retweet$feature_names)
 
 res_preds <-
   dplyr::tibble(
@@ -64,10 +60,12 @@ res_preds <-
       )
     )
   )
-# res <-
-#   res_preds %>% 
-#   dplyr::select(stem, res) %>% 
-#   tidyr::unnest_wider(res) %>% 
-#   dplyr::select(stem, preds) %>% 
-#   tidyr::unnest(preds)
+res <-
+  res_preds %>%
+  dplyr::select(stem, res) %>%
+  tidyr::unnest_wider(res) %>%
+  dplyr::select(stem, preds) %>%
+  tidyr::unnest(preds)
+res
+res %>% dplyr::relocate(matches('trans$')) %>% tail()
 # res %>% visdat::vis_dat()
