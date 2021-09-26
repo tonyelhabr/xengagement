@@ -52,10 +52,10 @@
           objective = objective,
           eval_metric = eval_metrics,
           eta = params$learn_rate,
-          gamma = params$loss_reduction,
-          subsample = params$sample_size,
+          # gamma = params$loss_reduction,
+          # subsample = params$sample_size,
           colsample_bytree = params$mtry,
-          max_depth = params$tree_depth,
+          # max_depth = params$tree_depth,
           min_child_weight = params$min_n
         )
       

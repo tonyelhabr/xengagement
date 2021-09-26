@@ -58,6 +58,8 @@ do_fit <-
     # TODO: Make these package options?
     nrounds <- 2000
     booster <- 'gbtree'
+    # objective <- 'reg:squaredlogerror'
+    # eval_metrics <- list('rmsle')
     objective <- 'reg:squarederror'
     eval_metrics <- list('rmse')
     early_stopping_rounds <- 10
@@ -66,6 +68,7 @@ do_fit <-
     
     y <- data[[cols_lst$col_y]]
     wt <- data[[cols_lst$col_wt]]
+    n_col <- ncol(x_mat)
     x_dmat <-
       xgboost::xgb.DMatrix(
         x_mat,
@@ -104,26 +107,34 @@ do_fit <-
       n_obs <- folds %>% purrr::flatten_int() %>% length()
       max_idx <- folds %>% purrr::flatten_int() %>% max()
       assertthat::assert_that(n_obs == max_idx)
-      
-      n_row <- 50
+
+      n_row <- 30
       grid_params <-
         dials::grid_latin_hypercube(
-          dials::finalize(dials::mtry(), data),
+          # dials::finalize(dials::mtry(), data),
+          dials::mtry(range = c(round(n_col / 3), n_col)),
           dials::min_n(),
           dials::tree_depth(),
           dials::learn_rate(),
-          dials::loss_reduction(),
-          sample_size = dials::sample_prop(),
+          # dials::loss_reduction(),
+          # sample_size = dials::sample_prop(),
           size = n_row
         ) %>%
+        # dials::grid_regular(
+        #   dials::mtry(range = c(round(n_col / 3), n_col)),
+        #   dials::min_n(),
+        #   dials::tree_depth(),
+        #   dials::learn_rate(),
+        #   levels = 3
+        # ) %>%
         dplyr::mutate(
-          learn_rate = 0.1 * ((1:n_row) / n_row),
-          mtry = mtry / ncol(data),
+          learn_rate = 0.1 * ((1:dplyr::n()) / dplyr::n()),
+          mtry = mtry / n_col,
           idx = dplyr::row_number()
         ) %>%
         dplyr::relocate(idx)
       grid_params
-      
+
       res_tune_cv <- 
         .tune_xgb_cv(
           nrounds = nrounds,
@@ -151,7 +162,7 @@ do_fit <-
         export = TRUE,
         overwrite = .overwrite$tune
       )
-    
+    # res_tune_cv %>% pivot_longer(c(eta:iter)) %>% ggplot() + aes(x = value, y = rmsle_trn) + facet_wrap(~name, scales = 'free_x') + geom_point()
     .f_fit <- function() {
       eval_metric <- eval_metrics[1]
       eval_metric_tst <- sprintf('%s_tst', eval_metric)
@@ -169,10 +180,10 @@ do_fit <-
           objective = objective,
           eval_metric = eval_metrics,
           eta = .pluck_param('eta'),
-          gamma = .pluck_param('gamma'),
-          subsample = .pluck_param('subsample'),
+          # gamma = .pluck_param('gamma'),
+          # subsample = .pluck_param('subsample'),
           colsample_bytree = .pluck_param('colsample_bytree'),
-          max_depth = .pluck_param('max_depth'),
+          # max_depth = .pluck_param('max_depth'),
           min_child_weight = .pluck_param('min_child_weight')
         )
       params_best

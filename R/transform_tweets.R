@@ -26,12 +26,14 @@
     col_res_sym <-
       sprintf('estimated_followers_count_%s', side) %>% sym()
     
+
     if (!train & retrieve) {
       
       teams_distinct <- data %>% .distinct12_at(col = 'team', suffix = .get_valid_sides())
       users <-
         team_accounts_mapping %>% 
         dplyr::semi_join(teams_distinct, by = 'team') %>% 
+        tidyr::drop_na(user_id) %>% 
         dplyr::pull(user_id)
       if(length(users) == 0L) {
         .display_warning('Could not retrieve most up-to-date follower count for {length(teams_distinct)} teams. Using pre-saved info.')
@@ -60,6 +62,7 @@
         !!col_diff_sym := !!latest_date - lubridate::date(!!col_created_at_sym),
         !!col_diff_latest_sym := !!latest_date - created_date,
         dplyr::across(dplyr::matches(col_diff), as.numeric),
+        # Linear estimate if exponent is 1. This seems to match SocialBlade info, e.g. https://socialblade.com/twitter/user/chelseafc
         !!col_res_sym := ((!!col_diff_sym-!!col_diff_latest_sym) / !!col_diff_sym) ^1 * !!col_followers_count_sym
       ) %>%
       dplyr::select(
@@ -72,7 +75,6 @@
 
 #' @noRd
 .add_estimated_follower_count_cols <- function(data, ...) {
-  # browser()
   data %>% 
     .add_estimated_follower_count_col('h', ...) %>% 
     .add_estimated_follower_count_col('a', ...)
@@ -80,12 +82,12 @@
 
 #' @noRd
 .fix_team_col <- function(data, side = .get_valid_sides()) {
-  # browser()
+
   .validate_side(side)
   col_team_sym <- sprintf('team_%s', side) %>% sym()
   col_team_correct_sym <- sprintf('team_correct_%s', side) %>% sym()
-  # team_corrections <- .get_team_corrections()
   team_col <- sprintf('team_%s', side)
+
   data %>% 
     dplyr::left_join(
       team_corrections %>% dplyr::rename_all(~sprintf('%s_%s', .x, side)),
@@ -105,7 +107,7 @@
 }
 
 #' @noRd
-.retrieve_matches_538 <- # memoise::memoise({
+.retrieve_matches_538 <-
   function() {
   matches <- 
     readr::read_csv(
@@ -125,11 +127,10 @@
     dplyr::rename_with(~stringr::str_replace(.x, '2$', '_538_a'), dplyr::matches('2$'))
   matches
 }
-# })
+
 
 #' @noRd
 .add_cols_538 <- function(data, matches = .retrieve_matches_538()) {
-  # matches = .retrieve_matches_538()
   data %>% 
     dplyr::left_join(matches, by = c('season', 'team_538_h', 'team_538_a'))
 }
@@ -141,7 +142,7 @@
 #' @param tweets Tweets retrieved with `retrieve_tweets`
 #' @param ... Not currently used
 #' @param train If `TRUE`, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.
-#' @param first_followers_count Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
+#' @param first_followers_count Assumed number of xGPhilosphy followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.
 #' @export
 transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 5000) {
   
@@ -184,6 +185,7 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       res_filt %>% 
       dplyr::mutate(
         dplyr::across(dplyr::matches('^(favorite|retweet)_count$'), list(trans = ~log(.x + 1))),
+        # dplyr::across(dplyr::matches('^(favorite|retweet)_count$'), list(trans = ~.x)),
         dplyr::across(
           created_at,
           list(
@@ -213,7 +215,6 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
           .names = '{fn}'
         )
       ) %>%
-      # select(-text) %>% 
       # Drop non-score line tweets that weren't caught by previous filter.
       tidyr::drop_na(xg_h, g_h, g_a, xg_a) %>%
       dplyr::mutate(
@@ -241,24 +242,9 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
         gd_w2l = g_w - g_l,
         proj_score_538_w2l = proj_score_538_w - proj_score_538_l,
         d_w2l = xgd_w2l - gd_w2l,
-        # is_gt_h = dplyr::if_else(xg_h - g_h > 0, 1L, 0L),
-        # is_gt_a = dplyr::if_else(xg_a - g_a > 0, 1L, 0L),
-        # xgd_h2a = xg_h - xg_a,
-        # gd_h2a = g_h - g_a,
-        # proj_score_538_h2a = proj_score_538_h - proj_score_538_a,
-        # d_agree_h2a = 
-        #   dplyr::case_when(
-        #     xgd_h2a > 0 & gd_h2a > 0 ~ 1L,
-        #     xgd_h2a < 0 & gd_h2a < 0 ~ 1L,
-        #     TRUE ~ 0L
-        #   ),
-        # d_h2a = xgd_h2a - gd_h2a # ,
-        # team_xg_w = dplyr::if_else(xg_h > xg_a, team_h, team_a)
         estimated_followers_count_w = dplyr::if_else(team_xg_w == team_h, estimated_followers_count_h, estimated_followers_count_a),
         estimated_followers_count_l = dplyr::if_else(team_xg_w == team_h, estimated_followers_count_a, estimated_followers_count_h)
       ) %>% 
-      # Don't keep games where neither side's followers can be estimated.
-      # dplyr::filter(!is.na(estimated_followers_count_a) & !is.na(estimated_followers_count_h)) %>% 
       dplyr::select(-created_date) %>% 
       dplyr::arrange(created_at) %>% 
       dplyr::mutate(
@@ -266,24 +252,8 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       ) %>% 
       dplyr::relocate(idx, dplyr::matches('^team_'), dplyr::matches('^estimated_followers_count_'))
   )
-  
-  # standings <- .retrieve_understatr()
-  # standings <- standings %>% dplyr::select(-c(lg, g)) %>% dplyr::rename(team_understat = team)
-  # res
-  # res %>% dplyr::inner_join(standings %>% dplyr::rename_all(~sprintf('%s_h', .x)))
-  
-  # rec <-
-  #   res_proc %>% 
-  #   recipes::recipe(formula(~.), data = .) %>% 
-  #   recipes::step_YeoJohnson(favorite_count, retweet_count)
-  # 
-  # res_trans <-
-  #   rec %>% 
-  #   recipes::prep() %>% 
-  #   recipes::bake(new_data = res_proc)
-  
+
   .f_distinct <- function(side = .get_valid_sides()) {
-    # res_trans %>% 
     res_proc %>% 
       dplyr::distinct(
         team = !!sym(sprintf('team_%s', side)), 
@@ -323,7 +293,6 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
   
 
   res <-
-    # res_trans %>% 
     res_proc %>% 
     .f_join_rename('h') %>% 
     .f_join_rename('a') %>% 
@@ -334,9 +303,6 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
       retweet_count_lag1_l = dplyr::if_else(team_xg_w == team_h, retweet_count_lag1_a, retweet_count_lag1_h)
     )
   
-
-  # if(train) {
-  # Getting weird error without .data$idx
   res <-
     res %>% 
     dplyr::mutate(
@@ -352,7 +318,6 @@ transform_tweets <- function(tweets, ..., train = TRUE, first_followers_count = 
     ) %>% 
     dplyr::select(-dplyr::matches('^wt[12].*')) %>% 
     dplyr::relocate(idx, dplyr::matches('^wt_'))
-  # }
   
   res
 }
