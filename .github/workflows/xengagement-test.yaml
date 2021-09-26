@@ -32,10 +32,17 @@ jobs:
         shell: Rscript {0}
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          options(renv.config.cache.symlinks = FALSE)
+          renv::consent(TRUE)
+          renv::isolate()
           renv::restore()
+          
+      - name: Install xengagement
+        shell: Rscript {0}
+        run: |
           install.packages('remotes')
           remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
-    
+          
       - name: Update data
         run: Rscript data-raw/update-test.R
         
