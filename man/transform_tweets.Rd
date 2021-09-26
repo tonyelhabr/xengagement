@@ -13,7 +13,7 @@ transform_tweets(tweets, ..., train = TRUE, first_followers_count = 5000)
 
 \item{train}{If \code{TRUE}, then updates team follower account numbers. Otherwise, uses an extrapolated based on the last retrieved numbers.}
 
-\item{first_followers_count}{Assumed number of xGPhilospher followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.}
+\item{first_followers_count}{Assumed number of xGPhilosphy followers around the end of 2019. We have to make an assumption so that we can do interpolation of growth of followers.}
 }
 \description{
 Transform tweets into format for modeling. This can be saved and combined with SHAP values later. Follower growth of the xGPhilophy account is assumed to be linear per tweet, while growth of the team accounts is assumed to follow a concave curve.
