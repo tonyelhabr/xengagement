@@ -16,12 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
-      - name: Install packages
+      - name: Install pak and packages
         run: |
-          install.packages('remotes')
-          remotes::install_github(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
-          remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
-          install.packages(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
+          install.packages('pak', repos = 'https://r-lib.github.io/p/pak/dev/')
+          pak::pak(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
+          pak::pak(c('tonyelhabr/xengagement'))
+          pak::pak(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
         shell: Rscript {0}
 
       - name: Update data
