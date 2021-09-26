@@ -13,36 +13,17 @@ jobs:
       TWITTER_CONSUMER_API_SECRET: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
       TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
       TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-      RENV_PATHS_ROOT: ~/.local/share/renv
-      
     steps:
       - uses: actions/checkout@v2
-      
       - uses: r-lib/actions/setup-r@v1
-
-      - name: Cache packages
-        uses: actions/cache@v1
-        with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-renv-
-
-      - name: Restore packages
-        shell: Rscript {0}
-        run: |
-          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-          options(renv.config.cache.symlinks = FALSE)
-          renv::consent(TRUE)
-          renv::isolate()
-          renv::restore()
-          
-      - name: Install xengagement
-        shell: Rscript {0}
+      - name: Install packages
         run: |
           install.packages('remotes')
+          remotes::install_github(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
           remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
-          
+          install.packages(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
+        shell: Rscript {0}
+
       - name: Update data
         run: Rscript data-raw/update-test.R
         
