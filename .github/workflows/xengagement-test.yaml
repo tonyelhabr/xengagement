@@ -20,9 +20,9 @@ jobs:
       - uses: actions/checkout@v2
       
       - uses: r-lib/actions/setup-r@v1
-        uses: actions/cache@v1
-        
+
       - name: Cache packages
+        uses: actions/cache@v1
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
@@ -34,6 +34,8 @@ jobs:
         run: |
           if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
           renv::restore()
+          install.packages('remotes')
+          remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
     
       - name: Update data
         run: Rscript data-raw/update-test.R
