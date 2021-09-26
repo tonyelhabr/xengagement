@@ -5,29 +5,39 @@ on:
     - cron: '*/5 * * * *'
 
 jobs:
-  data-update:
-    runs-on: macOS-latest
+  gha_test:
+    runs-on: ubuntu-latest
+    
     env:
       TWITTER_APP: ${{ secrets.TWITTER_APP }}
       TWITTER_CONSUMER_API_KEY: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
       TWITTER_CONSUMER_API_SECRET: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
       TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
       TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+      RENV_PATHS_ROOT: ~/.local/share/renv
+      
     steps:
       - uses: actions/checkout@v2
+      
       - uses: r-lib/actions/setup-r@v1
-      - name: Install packages
-        run: |
-          install.packages('remotes')
-          remotes::install_github(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
-          remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
-          install.packages(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
+        uses: actions/cache@v1
+        
+      - name: Cache packages
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Restore packages
         shell: Rscript {0}
-         
+        run: |
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
+    
       - name: Update data
         run: Rscript data-raw/update-test.R
         
       - name: Commit results
         run: |
-          git diff --quiet && git diff --staged --quiet || git commit -am 'Auto-updated data'
-          git push https://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}.git HEAD:${{ github.ref }} || echo "No changes to commit"
+          git diff-index --quiet HEAD || (git commit -am 'Auto-updated data' --allow-empty && git push -f)
