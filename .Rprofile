@@ -1,3 +1,4 @@
+source("renv/activate.R")
 
 base::.First.sys()
 
