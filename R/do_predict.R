@@ -74,7 +74,6 @@ do_predict <-
     x_mat <- data %>% dplyr::select(dplyr::one_of(c(cols_lst$cols_x))) %>% .df2mat()
     
     .f_predict <- function() {
-      # browser()
       preds <-
         fit %>%
         stats::predict(x_mat) %>%
@@ -83,9 +82,7 @@ do_predict <-
           cols_id = cols_lst$cols_id,
           cols_extra = cols_lst$cols_extra,
           col_y = cols_lst$col_y,
-          # f_trans = .inverse_log
-          # f_trans = function(x) { exp(x) - 1 }
-          f_trans = function(x) { x }
+          f_trans = .inverse_log
         )
       preds
     }

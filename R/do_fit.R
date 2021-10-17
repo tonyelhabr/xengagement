@@ -58,8 +58,6 @@ do_fit <-
     # TODO: Make these package options?
     nrounds <- 2000
     booster <- 'gbtree'
-    # objective <- 'reg:squaredlogerror'
-    # eval_metrics <- list('rmsle')
     objective <- 'reg:squarederror'
     eval_metrics <- list('rmse')
     early_stopping_rounds <- 10
@@ -111,22 +109,12 @@ do_fit <-
       n_row <- 30
       grid_params <-
         dials::grid_latin_hypercube(
-          # dials::finalize(dials::mtry(), data),
           dials::mtry(range = c(round(n_col / 3), n_col)),
           dials::min_n(),
           dials::tree_depth(),
           dials::learn_rate(),
-          # dials::loss_reduction(),
-          # sample_size = dials::sample_prop(),
           size = n_row
         ) %>%
-        # dials::grid_regular(
-        #   dials::mtry(range = c(round(n_col / 3), n_col)),
-        #   dials::min_n(),
-        #   dials::tree_depth(),
-        #   dials::learn_rate(),
-        #   levels = 3
-        # ) %>%
         dplyr::mutate(
           learn_rate = 0.1 * ((1:dplyr::n()) / dplyr::n()),
           mtry = mtry / n_col,
@@ -162,7 +150,7 @@ do_fit <-
         export = TRUE,
         overwrite = .overwrite$tune
       )
-    # res_tune_cv %>% pivot_longer(c(eta:iter)) %>% ggplot() + aes(x = value, y = rmsle_trn) + facet_wrap(~name, scales = 'free_x') + geom_point()
+
     .f_fit <- function() {
       eval_metric <- eval_metrics[1]
       eval_metric_tst <- sprintf('%s_tst', eval_metric)
@@ -180,10 +168,7 @@ do_fit <-
           objective = objective,
           eval_metric = eval_metrics,
           eta = .pluck_param('eta'),
-          # gamma = .pluck_param('gamma'),
-          # subsample = .pluck_param('subsample'),
           colsample_bytree = .pluck_param('colsample_bytree'),
-          # max_depth = .pluck_param('max_depth'),
           min_child_weight = .pluck_param('min_child_weight')
         )
       params_best
