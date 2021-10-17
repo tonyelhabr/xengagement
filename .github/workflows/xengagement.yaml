@@ -7,7 +7,9 @@ on:
 jobs:
   data-update:
     runs-on: macOS-latest
+    
     env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       TWITTER_APP: ${{ secrets.TWITTER_APP }}
       TWITTER_CONSUMER_API_KEY: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
       TWITTER_CONSUMER_API_SECRET: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
@@ -16,18 +18,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
-      - name: Install packages
+
+      - name: Install pak and packages
         run: |
-          install.packages('remotes')
-          remotes::install_github(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
-          remotes::install_github('tonyelhabr/xengagement', dependencies = TRUE, force = FALSE)
+          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+          pak::pak(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
+          pak::pak(c('tonyelhabr/xengagement'))
           install.packages(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
         shell: Rscript {0}
-         
+
       - name: Update data
         run: Rscript data-raw/update.R
         
       - name: Commit results
         run: |
-          git diff --quiet && git diff --staged --quiet || git commit -am 'Auto-updated data'
-          git push https://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}.git HEAD:${{ github.ref }} || echo "No changes to commit"
+          git diff-index --quiet HEAD || (git commit -am 'Auto-updated data' --allow-empty && git push -f)
