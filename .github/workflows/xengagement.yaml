@@ -2,7 +2,10 @@ name: xengagement
 
 on:
   workflow_dispatch
-
+  push
+  schedule:
+    - cron: '*/10 13-23 * * *'
+    
 jobs:
   data-update:
     runs-on: macOS-latest
@@ -20,7 +23,7 @@ jobs:
 
       - name: Install pak and packages
         run: |
-          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+          install.packages('pak', repos = 'https://r-lib.github.io/p/pak/dev/')
           pak::pak(c('rstudio/webshot2', 'gadenbuie/tweetrmd'))
           pak::pak(c('tonyelhabr/xengagement'))
           install.packages(c('dplyr', 'tidyr', 'purrr', 'readr', 'lubridate', 'glue'))
