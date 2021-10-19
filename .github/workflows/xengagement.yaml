@@ -1,8 +1,8 @@
 name: xengagement
 
 on:
-  workflow_dispatch
-  push
+  workflow_dispatch:
+  push:
   schedule:
     - cron: '*/10 13-23 * * *'
     
