@@ -1,4 +1,5 @@
 
+devtools::load_all()
 today <- lubridate::today()
 token <- get_twitter_token()
 team_accounts <- 
