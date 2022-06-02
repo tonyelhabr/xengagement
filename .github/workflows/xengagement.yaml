@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
   schedule:
-    - cron: '*/10 13-23 * * *'
+    - cron: '0 0 1 1 *'
     
 jobs:
   data-update:
